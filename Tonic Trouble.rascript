@@ -180,7 +180,7 @@ function CollectedAllThermomitersInArea(areaId, thermomiterCount) => InArea(area
 
 achievement(
     title = "Speedy Sledding", points = 5,
-    description = "Make it down the ski slope with a time of 1 minute and 30 seconds or less",
+    description = "Make it down the Ski Slope with a time of 1 minute and 30 seconds or less",
     id = 403627, badge = "456657",
     trigger = SkiSlopeTimer() <= 90000 && SkiSlopeLevelCleared()
 )
@@ -194,7 +194,7 @@ achievement(
 
 achievement(
     title = "Ski Slope Thermometer Hunter", points = 5,
-    description = "Collect all 10 thermomiters on the Ski Slope",
+    description = "Collect all 10 thermometers on the Ski Slope",
     id = 403659, badge = "456679",
     trigger = CollectedAllThermomitersInArea(AREA_ID_SKI_SLOPE, SkiSlopeThermometers())
 )
