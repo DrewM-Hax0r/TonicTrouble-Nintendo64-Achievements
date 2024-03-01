@@ -1,6 +1,11 @@
 // Tonic Trouble
 // #ID = 10308
 
+// $113504: [16-bit] Game State Identifier
+//          0x0E70 = At title screen menus
+//          0x5588 = In a game
+function GameStateIdentifier() => word(0x113504)
+
 // $113685: [8-bit] Inital Load Black Screen Flag
 //          Set to 0x01 when loading into most areas, when 0x01 the screen will be black and fade in to the game after which the flag resets to 0
 function InitalLoadBlackScreenFlag() => byte(0x113685)
@@ -16,6 +21,7 @@ function DemoModeFlag() => byte(0x1136E5)
 //          0x0000 = Game Boot / Title Screen
 //          0x1C78 = Opening Cutscene
 //          0xA504 = Ending Cutscene / Credits
+//          0x54C8 = Game Over
 //
 //          0x70BC = Ski Slope (Area 1, Top)
 //          0x0780 = Ski Slope (Area 2)
@@ -156,6 +162,8 @@ AREA_ID_SKI_SLOPE = 1
 // ----- Logic Functions -----
 // ---------------------------
 
+function AtTitleScreens() => GameStateIdentifier() == 0x0E70
+
 function NotInDemoMode() => DemoModeFlag() != 0x01
 
 function CurrentLoadedZoneIs(levelId) => LevelId() == levelId
@@ -222,6 +230,82 @@ leaderboard(
 // ----- Rich Presence -----
 // -------------------------
 
-rich_presence_conditional_display(DemoModeFlag() == 0x01 || LevelId() == 0x0000, "At the Title Screen")
+LevelLookup = {
+    0xEDAC: "training with the peashooter",
+    0x11CC: "training with the bow tie glider",
+    0x5ACC: "training with the bow tie glider",
+    0xDE58: "training with the bow tie glider",
+    0xDC94: "training with the pogo stick",
+    0xF0EC: "at the South Plain",
+    0xC24C: "at the South Plain",
+    0x1E20: "at the South Plain",
+    0x4F54: "at the South Plain",
+    0x53BC: "at the South Plain",
+    0x4BC0: "at the South Plain",
+    0x70BC: "on the Ski Slope",
+    0x0780: "on the Ski Slope",
+    0x368C: "on the Ski Slope",
+    0x7EB0: "on the Ski Slope",
+    0xEF8C: "in Doc's Cave",
+    0xC040: "in Doc's Cave",
+    0xD4E4: "in Doc's Cave",
+    0x9524: "in Doc's Cave",
+    0xB51C: "in Doc's Cave",
+    0x1A30: "in Doc's Cave",
+    0x7EFC: "in Doc's Cave",
+    0xE56C: "in the Vegetables' HQ",
+    0xCFF8: "in the Vegetables' HQ",
+    0x29A8: "in the Vegetables' HQ",
+    0x18F8: "in the Vegetables' HQ",
+    0x7FA0: "in the Vegetables' HQ",
+    0x7BD8: "in the Vegetables' HQ",
+    0xE4C8: "at North Plain",
+    0xB1D8: "at North Plain",
+    0x8D8C: "at North Plain",
+    0x3610: "at North Plain",
+    0xE4C0: "at North Plain",
+    0xF394: "at the Canyon",
+    0xEFE4: "at the Canyon",
+    0xF6BC: "at the Canyon",
+    0xAC6C: "at the Canyon",
+    0xFC6C: "at the Canyon",
+    0xAA8C: "at the Canyon",
+    0xE700: "on the Glacier Cocktail",
+    0xCE5C: "on the Glacier Cocktail",
+    0xF7E4: "on the Glacier Cocktail",
+    0x0A98: "on the Glacier Cocktail",
+    0xFD38: "in the Pyramid",
+    0x0AB4: "in the Pyramid",
+    0x50E0: "in the Pyramid",
+    0x3A20: "in the Pyramid",
+    0xEDEC: "in the Pyramid",
+    0x9448: "in the Pyramid",
+    0x0C38: "in the Pyramid",
+    0x90F8: "in the Pyramid",
+    0xC3C8: "at the Preassure Cooker",
+    0xEE90: "at the Preassure Cooker",
+    0xA6B0: "at the Preassure Cooker",
+    0x275C: "at the Preassure Cooker",
+    0x1960: "at the Preassure Cooker",
+    0x57A8: "infiltrating the magic mushroom's hideout",
+    0x7FB8: "infiltrating the magic mushroom's hideout",
+    0x3448: "infiltrating the magic mushroom's hideout",
+    0x045C: "fighting the magic mushroom",
+    0x9FB8: "infiltrating Grögh's Lair",
+    0x5084: "infiltrating Grögh's Lair",
+    0x3BBC: "infiltrating Grögh's Lair",
+    0x2D00: "infiltrating Grögh's Lair",
+    0x251C: "infiltrating Grögh's Lair",
+    0x42E8: "infiltrating Grögh's Lair",
+    0x630C: "fighting Grögh the Hellish",
+    0x5F38: "fighting Grögh the Hellish",
+    0xFFF8: "fighting Grögh the Hellish"
+}
 
-rich_presence_display("Unknown")
+rich_presence_conditional_display(AtTitleScreens() || DemoModeFlag() == 0x01, "Starting the game")
+rich_presence_conditional_display(LevelId() == 0x54C8, "Game Over")
+rich_presence_conditional_display(LevelId() == 0x1C78, "Ed is beginning a new adventure")
+rich_presence_conditional_display(LevelId() == 0xA504, "Ed has taken back the can of tonic and saved the earth")
+rich_presence_display("Ed is {0}",
+    rich_presence_lookup("Level", LevelId(), LevelLookup, fallback="lost in spacetime")
+)
