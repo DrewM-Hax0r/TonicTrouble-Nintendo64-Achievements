@@ -5,12 +5,10 @@
 //          Set to 0x01 when loading into most areas, when 0x01 the screen will be black and fade in to the game after which the flag resets to 0
 function InitalLoadBlackScreenFlag() => byte(0x113685)
 
-// $1136E5: Demo mode
-//          ff if inactive, 01 if active
-function DemoMode() => byte(0x1136E5)
-
-// $139831: Demo flag
-function DemoFlag() => byte(0x139831)
+// $1136E5: [8-bit] Demo Mode Flag
+//          0xFF = Not in Demo Mode
+//          0x01 = In Demo Mode
+function DemoModeFlag() => byte(0x1136E5)
 
 // $13A9EC: [16-bit] Current Level ID
 //          A unique value for each loaded area of the game
@@ -158,6 +156,8 @@ AREA_ID_SKI_SLOPE = 1
 // ----- Logic Functions -----
 // ---------------------------
 
+function NotInDemoMode() => DemoModeFlag() != 0x01
+
 function CurrentLoadedZoneIs(levelId) => LevelId() == levelId
 
 function InArea(areaId) {
@@ -169,9 +169,9 @@ function InArea(areaId) {
 
 function SkiSlopeLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4) && prev(SkiSlopeTimerFlag()) == TIMER_ON && (SkiSlopeTimerFlag() == TIMER_OFF || SkiSlopeTimerFlag() == TIMER_OFF_NEW_RECORD)
 
-function CollectedAllAntidotesInArea(areaId, antidoteCount) => InArea(areaId) && prev(antidoteCount) == 0x13 && antidoteCount == 0x14
+function CollectedAllAntidotesInArea(areaId, antidoteCount) => NotInDemoMode() && InArea(areaId) && prev(antidoteCount) == 0x13 && antidoteCount == 0x14
 
-function CollectedAllThermomitersInArea(areaId, thermomiterCount) => InArea(areaId) && prev(thermomiterCount) == 0x09 && thermomiterCount == 0x0A
+function CollectedAllThermomitersInArea(areaId, thermomiterCount) => NotInDemoMode() && InArea(areaId) && prev(thermomiterCount) == 0x09 && thermomiterCount == 0x0A
 
 
 // ------------------------
@@ -182,7 +182,7 @@ achievement(
     title = "Speedy Sledding", points = 5,
     description = "Make it down the Ski Slope with a time of 1 minute and 30 seconds or less",
     id = 403627, badge = "456657",
-    trigger = SkiSlopeTimer() <= 90000 && SkiSlopeLevelCleared()
+    trigger = NotInDemoMode() && SkiSlopeTimer() <= 90000 && SkiSlopeLevelCleared()
 )
 
 achievement(
@@ -222,6 +222,6 @@ leaderboard(
 // ----- Rich Presence -----
 // -------------------------
 
-rich_presence_conditional_display(DemoFlag() == 0x01 || LevelId() == 0x0000, "At the Title Screen")
+rich_presence_conditional_display(DemoModeFlag() == 0x01 || LevelId() == 0x0000, "At the Title Screen")
 
 rich_presence_display("Unknown")
