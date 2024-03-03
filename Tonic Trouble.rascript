@@ -300,9 +300,9 @@ function TotalThermometersCollected() => SkiSlopeThermometers() + SouthPlainTher
 
 function SkiSlopeLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4) && prev(SkiSlopeTimerFlag()) == TIMER_ON && (SkiSlopeTimerFlag() == TIMER_OFF || SkiSlopeTimerFlag() == TIMER_OFF_NEW_RECORD)
 
-function CollectedAllAntidotesInArea(areaId, antidoteCount) => NotInDemoMode() && InArea(areaId) && prev(antidoteCount) == 0x13 && antidoteCount == 0x14
+function CollectedAllAntidotesInArea(antidoteCount) => prev(antidoteCount) == 0x13 && measured(antidoteCount == 0x14, when=NotInDemoMode(), format="raw")
 
-function CollectedAllThermomitersInArea(areaId, thermomiterCount) => NotInDemoMode() && InArea(areaId) && prev(thermomiterCount) == 0x09 && thermomiterCount == 0x0A
+function CollectedAllThermometersInArea(thermomiterCount) => prev(thermomiterCount) == 0x09 && measured(thermomiterCount == 0x0A, when=NotInDemoMode(), format="raw")
 
 
 // ------------------------
@@ -332,17 +332,143 @@ achievement(
 )
 
 achievement(
-    title = "Ski Slope Antidote Hunter", points = 5,
+    title = "Antidote Hunter I", points = 5,
     description = "Collect all 20 antidotes on the Ski Slope",
     id = 403658, badge = "456678",
-    trigger = CollectedAllAntidotesInArea(AREA_ID_SKI_SLOPE, SkiSlopeAntidotes())
+    trigger = CollectedAllAntidotesInArea(SkiSlopeAntidotes())
 )
 
 achievement(
-    title = "Ski Slope Thermometer Hunter", points = 5,
+    title = "Thermometer Hunter I", points = 5,
     description = "Collect all 10 thermometers on the Ski Slope",
     id = 403659, badge = "456679",
-    trigger = CollectedAllThermomitersInArea(AREA_ID_SKI_SLOPE, SkiSlopeThermometers())
+    trigger = CollectedAllThermometersInArea(SkiSlopeThermometers())
+)
+
+achievement(
+    title = "Antidote Hunter II", points = 5,
+    description = "Collect all 20 antidotes in Doc's Cave",
+    id = 404196, badge = "457624",
+    trigger = CollectedAllAntidotesInArea(DocsCaveAntidotes())
+)
+
+achievement(
+    title = "Thermometer Hunter II", points = 5,
+    description = "Collect all 10 thermometers in in Doc's Cave",
+    id = 404197, badge = "457625",
+    trigger = CollectedAllThermometersInArea(DocsCaveThermometers())
+)
+
+achievement(
+    title = "Antidote Hunter III", points = 5,
+    description = "Collect all 20 antidotes in the Vegetables' HQ",
+    id = 404198, badge = "457626",
+    trigger = CollectedAllAntidotesInArea(VegetableHQAntidotes())
+)
+
+achievement(
+    title = "Thermometer Hunter III", points = 5,
+    description = "Collect all 10 thermometers in the Vegetables' HQ",
+    id = 404199, badge = "457627",
+    trigger = CollectedAllThermometersInArea(VegetableHQThermometers())
+)
+
+achievement(
+    title = "Antidote Hunter IV", points = 5,
+    description = "Collect all 20 antidotes at the North Plain",
+    id = 404200, badge = "457628",
+    trigger = CollectedAllAntidotesInArea(NorthPlainAntidotes())
+)
+
+achievement(
+    title = "Thermometer Hunter IV", points = 5,
+    description = "Collect all 10 thermometers at the North Plain",
+    id = 404201, badge = "457629",
+    trigger = CollectedAllThermometersInArea(NorthPlainThermometers())
+)
+
+achievement(
+    title = "Antidote Hunter V", points = 5,
+    description = "Collect all 20 antidotes at the Canyon",
+    id = 404202, badge = "457630",
+    trigger = CollectedAllAntidotesInArea(CanyonAntidotes())
+)
+
+achievement(
+    title = "Thermometer Hunter V", points = 5,
+    description = "Collect all 10 thermometers at the Canyon",
+    id = 404203, badge = "457631",
+    trigger = CollectedAllThermometersInArea(CanyonThermometers())
+)
+
+achievement(
+    title = "Antidote Hunter VI", points = 5,
+    description = "Collect all 20 antidotes at the Glacier Cocktail",
+    id = 404204, badge = "457632",
+    trigger = CollectedAllAntidotesInArea(GlacierCocktailAntidotes())
+)
+
+achievement(
+    title = "Thermometer Hunter VI", points = 5,
+    description = "Collect all 10 thermometers at the Glacier Cocktail",
+    id = 404205, badge = "457633",
+    trigger = CollectedAllThermometersInArea(GlacierCocktailThermometers())
+)
+
+achievement(
+    title = "Antidote Hunter VII", points = 5,
+    description = "Collect all 20 antidotes in the Pyramid",
+    id = 404206, badge = "457634",
+    trigger = CollectedAllAntidotesInArea(PyramidAntidotes())
+)
+
+achievement(
+    title = "Thermometer Hunter VII", points = 5,
+    description = "Collect all 10 thermometers in the Pyramid",
+    id = 404207, badge = "457635",
+    trigger = CollectedAllThermometersInArea(PyramidThermometers())
+)
+
+achievement(
+    title = "Antidote Hunter VIII", points = 5,
+    description = "Collect all 20 antidotes at the Pressure Cooker",
+    id = 404208, badge = "457636",
+    trigger = CollectedAllAntidotesInArea(PressureCookerAntidotes())
+)
+
+achievement(
+    title = "Thermometer Hunter VIII", points = 5,
+    description = "Collect all 10 thermometers at the Pressure Cooker",
+    id = 404209, badge = "457637",
+    trigger = CollectedAllThermometersInArea(PressureCookerThermometers())
+)
+
+achievement(
+    title = "Antidote Hunter IX", points = 5,
+    description = "Collect all 20 antidotes at the South Plain",
+    id = 404210, badge = "457638",
+    trigger = CollectedAllAntidotesInArea(SouthPlainAntidotes())
+)
+
+achievement(
+    title = "Thermometer Hunter IX", points = 5,
+    description = "Collect all 10 thermometers at the South Plain",
+    id = 404211, badge = "457639",
+    trigger = CollectedAllThermometersInArea(SouthPlainThermometers())
+)
+
+achievement(
+    title = "Thermometer Hunter X", points = 5,
+    description = "Collect all 10 thermometers at the magic mushroom's hideout",
+    id = 404212, badge = "457640",
+    trigger = CollectedAllThermometersInArea(MagicMushroomThermometers())
+)
+
+achievement(
+    title = "Thermometer Hunter XI", points = 5,
+    description = "Collect all 10 thermometers at Grögh's Lair",
+    id = 404213, badge = "457641",
+    trigger = CollectedAllThermometersInArea(GroghsLairThermometers())
 )
 
 achievement(
