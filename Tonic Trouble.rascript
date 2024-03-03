@@ -156,11 +156,83 @@ function EdYPosition() => dword(0x2A58C0)
 // $2A58C4: [32-bit] Ed's Z Position
 function EdZPosition() => dword(0x2A58C4)
 
+// $2AA888: [8-bit] Collected Dominos, max of 0x06 (6)
+function CollectedDominos() => byte(0x2AA888)
+
+// $2AA88C: [8-bit] Collected Jumping Stones, max of 0x06 (6)
+function CollectedJumpingStones() => byte(0x2AA88C)
+
+// $2AA88E: [8-bit] Collected Propellers, max of 0x06 (6)
+function CollectedPropellers() => byte(0x2AA88E)
+
+// $2AA890: [8-bit] Collected Feathers, max of 0x06 (6)
+function CollectedFeathers() => byte(0x2AA890)
+
+// $2AA892: [8-bit] Collected Piggy Banks, max of 0x06 (6)
+function CollectedPiggyBanks() => byte(0x2AA892)
+
 // $2AA894: [8-bit] Collected antidotes in Ski Slope, max of 0x14 (20)
 function SkiSlopeAntidotes() => byte(0x2AA894)
 
+// $2AA896: [8-bit] Collected Springs, max of 0x06 (6)
+function CollectedSprings() => byte(0x2AA896)
+
+// $2AA898: [8-bit] Collected antidotes in South Plain, max of 0x14 (20)
+function SouthPlainAntidotes() => byte(0x2AA898)
+
 // $2AA89A: [8-bit] Collected thermometers in Ski Slope, max of 0x0a (10)
 function SkiSlopeThermometers() => byte(0x2AA89A)
+
+// $2AA89C: [8-bit] Collected antidotes in Doc's Cave, max of 0x14 (20)
+function DocsCaveAntidotes() => byte(0x2AA89C)
+
+// $2AA89E: [8-bit] Collected thermometers in South Plain, max of 0x0a (10)
+function SouthPlainThermometers() => byte(0x2AA89E)
+
+// $2AA8A0: [8-bit] Collected antidotes in Vegetable HQ, max of 0x14 (20)
+function VegetableHQAntidotes() => byte(0x2AA8A0)
+
+// $2AA8A2: [8-bit] Collected thermometers in Doc's Cave, max of 0x0a (10)
+function DocsCaveThermometers() => byte(0x2AA8A2)
+
+// $2AA8A4: [8-bit] Collected antidotes in North Plain, max of 0x14 (20)
+function NorthPlainAntidotes() => byte(0x2AA8A4)
+
+// $2AA8A6: [8-bit] Collected thermometers in Vegetable HQ, max of 0x0a (10)
+function VegetableHQThermometers() => byte(0x2AA8A6)
+
+// $2AA8A8: [8-bit] Collected antidotes in Canyon, max of 0x14 (20)
+function CanyonAntidotes() => byte(0x2AA8A8)
+
+// $2AA8AA: [8-bit] Collected thermometers in North Plain, max of 0x0a (10)
+function NorthPlainThermometers() => byte(0x2AA8AA)
+
+// $2AA8AC: [8-bit] Collected antidotes in Glacier Cocktail, max of 0x14 (20)
+function GlacierCocktailAntidotes() => byte(0x2AA8AC)
+
+// $2AA8AE: [8-bit] Collected thermometers in Canyon, max of 0x0a (10)
+function CanyonThermometers() => byte(0x2AA8AE)
+
+// $2AA8B0: [8-bit] Collected antidotes in Pyramid, max of 0x14 (20)
+function PyramidAntidotes() => byte(0x2AA8B0)
+
+// $2AA8B2: [8-bit] Collected thermometers in Glacier Cocktail, max of 0x0a (10)
+function GlacierCocktailThermometers() => byte(0x2AA8B2)
+
+// $2AA8B4: [8-bit] Collected antidotes in Pressure Cooker, max of 0x14 (20)
+function PressureCookerAntidotes() => byte(0x2AA8B4)
+
+// $2AA8B6: [8-bit] Collected thermometers in Pyramid, max of 0x0a (10)
+function PyramidThermometers() => byte(0x2AA8B6)
+
+// $2AA8BA: [8-bit] Collected thermometers in Pressure Cooker, max of 0x0a (10)
+function PressureCookerThermometers() => byte(0x2AA8BA)
+
+// $2AA8BE: [8-bit] Collected thermometers in Grögh's Lair max of 0x0a (10)
+function GroghsLairThermometers() => byte(0x2AA8BE)
+
+// $2AA8C2: [8-bit] Collected thermometers in Magic Mushroom Hideout, max of 0x0a (10)
+function MagicMushroomThermometers() => byte(0x2AA8C2)
 
 // $2ABFC0: [8-bit] Ski Slope Timer Status Flag
 //          0x00 = The timer has not started counting yet. Ed may be at the top of the Ski Slope having not yet started a run, or at the bottom of the Ski Slope after having completed a run that did not result in a PB record (see notes for value 0x03).
@@ -220,6 +292,12 @@ function InArea(areaId) {
 
 function EdJumpedOnThisFrame() => prev(JumpFlag()) == 0xFF && JumpFlag() == 0x00
 
+function TotalAntidotesCollected() => SkiSlopeAntidotes() + SouthPlainAntidotes() + DocsCaveAntidotes() + VegetableHQAntidotes() + NorthPlainAntidotes() +
+                                      CanyonAntidotes() + GlacierCocktailAntidotes() + PyramidAntidotes() + PressureCookerAntidotes()
+                                      
+function TotalThermometersCollected() => SkiSlopeThermometers() + SouthPlainThermometers() + DocsCaveThermometers() + VegetableHQThermometers() + NorthPlainThermometers() + CanyonThermometers() +
+                                         GlacierCocktailThermometers() + PyramidThermometers() + PressureCookerThermometers() + MagicMushroomThermometers() + GroghsLairThermometers()
+
 function SkiSlopeLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4) && prev(SkiSlopeTimerFlag()) == TIMER_ON && (SkiSlopeTimerFlag() == TIMER_OFF || SkiSlopeTimerFlag() == TIMER_OFF_NEW_RECORD)
 
 function CollectedAllAntidotesInArea(areaId, antidoteCount) => NotInDemoMode() && InArea(areaId) && prev(antidoteCount) == 0x13 && antidoteCount == 0x14
@@ -230,6 +308,13 @@ function CollectedAllThermomitersInArea(areaId, thermomiterCount) => NotInDemoMo
 // ------------------------
 // ----- Achievements -----
 // ------------------------
+
+achievement(
+    title = "Welcome to Earth Ed", points = 1,
+    description = "Make it down the Ski Slope and enter South Plain",
+    id = 404131, badge = "457552",
+    trigger = NotInDemoMode() && prev(LevelId()) == 0x7EB0 && LevelId() == 0xC24C
+)
 
 achievement(
     title = "Great Nuts and Bolts", points = 2,
@@ -324,40 +409,6 @@ LevelLookup = {
     0xB51C: "in Doc's Cave",
     0x1A30: "in Doc's Cave",
     0x7EFC: "in Doc's Cave",
-    0xE56C: "in the Vegetables' HQ",
-    0xCFF8: "in the Vegetables' HQ",
-    0x29A8: "in the Vegetables' HQ",
-    0x18F8: "in the Vegetables' HQ",
-    0x7FA0: "in the Vegetables' HQ",
-    0x7BD8: "in the Vegetables' HQ",
-    0xE4C8: "at North Plain",
-    0xB1D8: "at North Plain",
-    0x8D8C: "at North Plain",
-    0x3610: "at North Plain",
-    0xE4C0: "at North Plain",
-    0xF394: "at the Canyon",
-    0xEFE4: "at the Canyon",
-    0xF6BC: "at the Canyon",
-    0xAC6C: "at the Canyon",
-    0xFC6C: "at the Canyon",
-    0xAA8C: "at the Canyon",
-    0xE700: "on the Glacier Cocktail",
-    0xCE5C: "on the Glacier Cocktail",
-    0xF7E4: "on the Glacier Cocktail",
-    0x0A98: "on the Glacier Cocktail",
-    0xFD38: "in the Pyramid",
-    0x0AB4: "in the Pyramid",
-    0x50E0: "in the Pyramid",
-    0x3A20: "in the Pyramid",
-    0xEDEC: "in the Pyramid",
-    0x9448: "in the Pyramid",
-    0x0C38: "in the Pyramid",
-    0x90F8: "in the Pyramid",
-    0xC3C8: "at the Preassure Cooker",
-    0xEE90: "at the Preassure Cooker",
-    0xA6B0: "at the Preassure Cooker",
-    0x275C: "at the Preassure Cooker",
-    0x1960: "at the Preassure Cooker",
     0x57A8: "infiltrating the magic mushroom's hideout",
     0x7FB8: "infiltrating the magic mushroom's hideout",
     0x3448: "infiltrating the magic mushroom's hideout",
@@ -376,7 +427,39 @@ LevelLookup = {
 rich_presence_conditional_display(AtTitleScreens() || DemoModeFlag() == 0x01, "Starting the game")
 rich_presence_conditional_display(LevelId() == 0x54C8, "Game Over")
 rich_presence_conditional_display(LevelId() == 0x1C78, "Ed is beginning a new adventure")
-rich_presence_conditional_display(LevelId() == 0xA504, "Ed has taken back the can of tonic and saved the earth")
-rich_presence_display("Ed is {0}",
-    rich_presence_lookup("Level", LevelId(), LevelLookup, fallback="lost in spacetime")
+rich_presence_conditional_display(LevelId() == 0xA504, "Ed has taken back the can of tonic and saved Earth")
+rich_presence_conditional_display(LevelId() == 0xE56C || LevelId() == 0xCFF8 || LevelId() == 0x29A8 || LevelId() == 0x18F8 || LevelId() == 0x7FA0 || LevelId() == 0x7BD8, "Ed is in the Vegetables' HQ • {0}/6 Springs • {1}/180 Antidotes • {2}/110 Thermometers",
+    rich_presence_value("Number", CollectedSprings()),
+    rich_presence_value("Number", TotalAntidotesCollected()),
+    rich_presence_value("Number", TotalThermometersCollected())
+)
+rich_presence_conditional_display(LevelId() == 0xE4C8 || LevelId() == 0xB1D8 || LevelId() == 0x8D8C || LevelId() == 0x3610 || LevelId() == 0xE4C0, "Ed is at North Plain • {0}/6 Propellers • {1}/180 Antidotes • {2}/110 Thermometers",
+    rich_presence_value("Number", CollectedPropellers()),
+    rich_presence_value("Number", TotalAntidotesCollected()),
+    rich_presence_value("Number", TotalThermometersCollected())
+)
+rich_presence_conditional_display(LevelId() == 0xF394 || LevelId() == 0xEFE4 || LevelId() == 0xF6BC || LevelId() == 0xAC6C || LevelId() == 0xFC6C || LevelId() == 0xAA8C, "Ed is at the Canyon • {0}/6 Jumping Stones • {1}/180 Antidotes • {2}/110 Thermometers",
+    rich_presence_value("Number", CollectedJumpingStones()),
+    rich_presence_value("Number", TotalAntidotesCollected()),
+    rich_presence_value("Number", TotalThermometersCollected())
+)
+rich_presence_conditional_display(LevelId() == 0xE700 || LevelId() == 0xCE5C || LevelId() == 0xF7E4 || LevelId() == 0x0A98, "Ed is at the Glacier Cocktail • {0}/6 Feathers • {1}/180 Antidotes • {2}/110 Thermometers",
+    rich_presence_value("Number", CollectedFeathers()),
+    rich_presence_value("Number", TotalAntidotesCollected()),
+    rich_presence_value("Number", TotalThermometersCollected())
+)
+rich_presence_conditional_display(LevelId() == 0xFD38 || LevelId() == 0x0AB4 || LevelId() == 0x50E0 || LevelId() == 0x3A20 || LevelId() == 0xEDEC || LevelId() == 0x9448 || LevelId() == 0x0C38 || LevelId() == 0x90F8, "Ed is in the Pyramid • {0}/6 Dominos • {1}/180 Antidotes • {2}/110 Thermometers",
+    rich_presence_value("Number", CollectedDominos()),
+    rich_presence_value("Number", TotalAntidotesCollected()),
+    rich_presence_value("Number", TotalThermometersCollected())
+)
+rich_presence_conditional_display(LevelId() == 0xC3C8 || LevelId() == 0xEE90 || LevelId() == 0xA6B0 || LevelId() == 0x275C || LevelId() == 0x1960, "Ed is at the Pressure Cooker • {0}/6 Piggy Banks • {1}/180 Antidotes • {2}/110 Thermometers",
+    rich_presence_value("Number", CollectedPiggyBanks()),
+    rich_presence_value("Number", TotalAntidotesCollected()),
+    rich_presence_value("Number", TotalThermometersCollected())
+)
+rich_presence_display("Ed is {0} • {1}/180 Antidotes • {2}/110 Thermometers",
+    rich_presence_lookup("Level", LevelId(), LevelLookup, fallback="lost in spacetime"),
+    rich_presence_value("Number", TotalAntidotesCollected()),
+    rich_presence_value("Number", TotalThermometersCollected())
 )
