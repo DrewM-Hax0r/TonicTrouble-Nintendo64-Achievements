@@ -124,15 +124,15 @@ function Lives() => byte(0x13A9F0)
 // $13A9F1: Collected thermometers in current level
 function CollectedThermometersInCurrentLevel() => byte(0x13A9F1)
 
-// $13A9F3: [8-bit] Current Health
-//          Ed may still be alive if value is 0x00, as a life is not lost until another hit is taken after this value is 0x00
-function CurrentHealth() => byte(0x13A9F3)
-
 // $1E31B9: [8-bit] Corn Boss Dialogue Flag
 //          This flag determines what dialogue the corn boss will give when entering the boss room.
 //          Increments by 0x01 when the boss room is left after the boss was defeated.
 //          When the value is 0x04, the next time it increments it will instead reset back to 0x01 to repeat the dialogue cycle.
 function CornBossDialogueFlag() => byte(0x1E31B9)
+
+// $29A89B: [8-bit] Current Health
+//          Ed may still be alive if value is 0x00, as a life is not lost until another hit is taken after this value is 0x00
+function CurrentHealth() => byte(0x29A89B)
 
 // $2A54F5:[8-bit] Jump Flag
 //         The value is set to 0x00 when Ed begins jumping and resets to 0xFF at the height of Ed's jump.
@@ -270,7 +270,7 @@ achievement(
 
 achievement(
     title = "No Toast for Ed", points = 5,
-    description = "Reach the end of the room of toasters in Doc's Cave using the red platform without taking damage or jumping after the platform begins moving",
+    description = "Reach the end of the toaster room in Doc's Cave using the red platform without taking damage or jumping after the platform begins moving",
     id = 404094, badge = "457527",
     trigger = NotInDemoMode() && LevelId() == 0x1A30 && never(DocsCaveToasterRoomPlatformFlag() < 0x02) &&
               once(prev(DocsCaveToasterRoomPlatformFlag()) == 0x01 && DocsCaveToasterRoomPlatformFlag() == 0x02) &&
