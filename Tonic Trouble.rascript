@@ -15,6 +15,18 @@ function InitalLoadBlackScreenFlag() => byte(0x113685)
 //          0x01 = In Demo Mode
 function DemoModeFlag() => byte(0x1136E5)
 
+// $1257A3: [8-bit] Player Input Buttons Held (A, B, Z, D-Pad, Start)
+//          Bits are set to 1 when a button on the controller is currently pressed down
+//          bit0 = D-Pad Right
+//          bit1 = D-Pad Left
+//          bit2 = D-Pad Down
+//          bit3 = D-Pad Up
+//          bit4 = Start Button
+//          bit5 = Z Button
+//          bit6 = B Button
+//          bit7 = A Button
+function PlayerInputAButtonDown() => bit7(0x1257a3)
+
 // $13A9EC: [16-bit] Current Level ID
 //          A unique value for each loaded area of the game
 //
@@ -112,17 +124,37 @@ function Lives() => byte(0x13A9F0)
 // $13A9F1: Collected thermometers in current level
 function CollectedThermometersInCurrentLevel() => byte(0x13A9F1)
 
-// $13A9F2: [16-bit] Current health
-function CurrentHealth() => word(0x13A9F2)
+// $13A9F3: [8-bit] Current Health
+//          Ed may still be alive if value is 0x00, as a life is not lost until another hit is taken after this value is 0x00
+function CurrentHealth() => byte(0x13A9F3)
+
+// $1E31B9: [8-bit] Corn Boss Dialogue Flag
+//          This flag determines what dialogue the corn boss will give when entering the boss room.
+//          Increments by 0x01 when the boss room is left after the boss was defeated.
+//          When the value is 0x04, the next time it increments it will instead reset back to 0x01 to repeat the dialogue cycle.
+function CornBossDialogueFlag() => byte(0x1E31B9)
+
+// $2A54F5:[8-bit] Jump Flag
+//         The value is set to 0x00 when Ed begins jumping and resets to 0xFF at the height of Ed's jump.
+//         This value is tied to actual player jumps, pressing A when Ed is not able to start a jump will not affect the value.
+//         0x00 = Jump Initiated
+//         0xFF = Default state, not jumping
+function JumpFlag() => byte(0x2A54F5)
+
+// $2A56F4: [8-bit] Toaster Room Moving Platform Flag
+//          Used to track when the red platorm in the toaster room of Doc's Cave is active/moving.
+//          0x01 = Inactive/not moving
+//          0x02 = Active/moving
+function DocsCaveToasterRoomPlatformFlag() => byte(0x2a56f4)
 
 // $2A58BC: [32-bit] Ed's X Position
-function EdSXPosition() => dword(0x2A58BC)
+function EdXPosition() => dword(0x2A58BC)
 
 // $2A58C0: [32-bit] Ed's Y Position
-function EdSYPosition() => dword(0x2A58C0)
+function EdYPosition() => dword(0x2A58C0)
 
 // $2A58C4: [32-bit] Ed's Z Position
-function EdSZPosition() => dword(0x2A58C4)
+function EdZPosition() => dword(0x2A58C4)
 
 // $2AA894: [8-bit] Collected antidotes in Ski Slope, max of 0x14 (20)
 function SkiSlopeAntidotes() => byte(0x2AA894)
@@ -136,11 +168,22 @@ function SkiSlopeThermometers() => byte(0x2AA89A)
 //          0x03 = Ed finished a run on the Ski Slope, and it was a new PB record.
 function SkiSlopeTimerFlag() => byte(0x2ABFC0)
 
+// $2B8E3E: [8-bit] Doc Freed Flag
+//          Changes value the first frame the door the doc is locked behind starts to open.
+//          0x00 = Doc not yet freed
+//          0x27 = Doc is freed
+function DocFreedFlag() => byte(0x2b8e3e)
+
 // $2E983C: [32-bit] Canyon Timer
 function CanyonTimer() => dword(0x2E983C)
 
 // $2E9868: [32-bit] Ski Slope Timer
 function SkiSlopeTimer() => dword(0x2E9868)
+
+// $3A2DE3: [8-bit] Corn Boss Health
+//          Starts at 0x06 and drops by 0x02 each time the boss is hit.
+//          Boss is defeated when value reaches 0x00.
+function CornBossHealth() => byte(0x3A2DE3)
 
 
 // ---------------------
@@ -175,6 +218,8 @@ function InArea(areaId) {
     return false
 }
 
+function EdJumpedOnThisFrame() => prev(JumpFlag()) == 0xFF && JumpFlag() == 0x00
+
 function SkiSlopeLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4) && prev(SkiSlopeTimerFlag()) == TIMER_ON && (SkiSlopeTimerFlag() == TIMER_OFF || SkiSlopeTimerFlag() == TIMER_OFF_NEW_RECORD)
 
 function CollectedAllAntidotesInArea(areaId, antidoteCount) => NotInDemoMode() && InArea(areaId) && prev(antidoteCount) == 0x13 && antidoteCount == 0x14
@@ -185,6 +230,14 @@ function CollectedAllThermomitersInArea(areaId, thermomiterCount) => NotInDemoMo
 // ------------------------
 // ----- Achievements -----
 // ------------------------
+
+achievement(
+    title = "Great Nuts and Bolts", points = 2,
+    description = "Defeat Robo-Suitcase and free the Doc",
+    id = 404124, badge = "457538",
+    trigger = NotInDemoMode() && LevelId() == 0x7EFC &&
+              trigger_when(prev(DocFreedFlag()) == 0x00 && DocFreedFlag() == 0x27)
+)
 
 achievement(
     title = "Speedy Sledding", points = 5,
@@ -205,6 +258,24 @@ achievement(
     description = "Collect all 10 thermometers on the Ski Slope",
     id = 403659, badge = "456679",
     trigger = CollectedAllThermomitersInArea(AREA_ID_SKI_SLOPE, SkiSlopeThermometers())
+)
+
+achievement(
+    title = "You've Got Cornstarch On Your Hands", points = 3,
+    description = "Defeat the 5th member of the corn people's revolutionary army",
+    id = 404049, badge = "457428",
+    trigger = NotInDemoMode() && LevelId() == 0x9524 && CornBossDialogueFlag() == 0x04 &&
+              trigger_when(prev(CornBossHealth()) == 0x02 && CornBossHealth() == 0x00)
+)
+
+achievement(
+    title = "No Toast for Ed", points = 5,
+    description = "Reach the end of the room of toasters in Doc's Cave using the red platform without taking damage or jumping after the platform begins moving",
+    id = 404094, badge = "457527",
+    trigger = NotInDemoMode() && LevelId() == 0x1A30 && never(DocsCaveToasterRoomPlatformFlag() < 0x02) &&
+              once(prev(DocsCaveToasterRoomPlatformFlag()) == 0x01 && DocsCaveToasterRoomPlatformFlag() == 0x02) &&
+              never(EdJumpedOnThisFrame()) && never(prev(CurrentHealth()) > CurrentHealth()) &&
+              trigger_when(prev(EdYPosition()) < 0xC3B55715 && EdYPosition() >= 0xC3B55715)
 )
 
 
