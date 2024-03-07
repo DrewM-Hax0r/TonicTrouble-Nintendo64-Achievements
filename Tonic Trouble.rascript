@@ -134,12 +134,26 @@ function CornBossDialogueFlag() => byte(0x1E31B9)
 //          Ed may still be alive if value is 0x00, as a life is not lost until another hit is taken after this value is 0x00
 function CurrentHealth() => byte(0x29A89B)
 
-// $2A54F5:[8-bit] Jump Flag
+// $2A54F5: [8-bit] Jump Flag
 //         The value is set to 0x00 when Ed begins jumping and resets to 0xFF at the height of Ed's jump.
 //         This value is tied to actual player jumps, pressing A when Ed is not able to start a jump will not affect the value.
 //         0x00 = Jump Initiated
 //         0xFF = Default state, not jumping
 function JumpFlag() => byte(0x2A54F5)
+
+// $2A56C2: [16-bit] Ed Current State
+//          This value can be checked to see if Ed is doing certain actions
+//          0x3F80 = Climbing up from hanging off a ledge
+//          0x4220 = Parachuting with bow Tie
+//          0x4290 = Exiting a portal
+//          0x42A0 = Gliding with Bow Tie
+//          0x42F0 = Default
+//          0x42C8 = Entering a portal, or swiming across the top of some water
+//          0x43B4 = Super Ed
+//          0x4461 = In water, starting a dive
+//          0x446D = In water, floating at top, not moving
+//          0x4477 = In water, diving
+function EdCurrentState() => word(0x2A56C2)
 
 // $2A56F4: [8-bit] Toaster Room Moving Platform Flag
 //          Used to track when the red platorm in the toaster room of Doc's Cave is active/moving.
@@ -155,6 +169,15 @@ function EdYPosition() => dword(0x2A58C0)
 
 // $2A58C4: [32-bit] Ed's Z Position
 function EdZPosition() => dword(0x2A58C4)
+
+// $2AA886: [8-bit] [8-bit] Obtained Upgrades
+//0x00 = No upgrades
+//Individual bits can be checked to see if an upgrade is currently obtained.
+// The progression of upgrades is 0x00 -> 0x07 -> 0x0F ->
+//
+// bit0, bit1, bit2 = Basic Stick (all 3 bits must be set)
+// bit3 = Peashooter
+function ObtainedUpgrades() => byte(0x2AA886)
 
 // $2AA888: [8-bit] Collected Dominos, max of 0x06 (6)
 function CollectedDominos() => byte(0x2AA888)
@@ -257,6 +280,12 @@ function SkiSlopeTimer() => dword(0x2E9868)
 //          Boss is defeated when value reaches 0x00.
 function CornBossHealth() => byte(0x3A2DE3)
 
+// $3A3453: [8-bit] Chili Pepper HP (Vegetable HQ level id 0x18F8)
+//          0x03 = Starting value, max health
+//          Reduced by 0x01 each time the Chili Pepper is hit with an attack from Super Ed.
+//          Chili Pepper is defeated when value reaches 0x00.
+function ChiliPepperHealth() => byte(0x3A3453)
+
 
 // ---------------------
 // ----- Constants -----
@@ -322,6 +351,20 @@ achievement(
     id = 404124, badge = "457538",
     trigger = NotInDemoMode() && LevelId() == 0x7EFC &&
               trigger_when(prev(DocFreedFlag()) == 0x00 && DocFreedFlag() == 0x27)
+)
+
+achievement(
+    title = "Six Springs Ready and Jumping", points = 3,
+    description = "Give 6 springs to the Doc and obtain the peashooter",
+    id = 405830, badge = "459152",
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x07 && ObtainedUpgrades() == 0x0F
+)
+
+achievement(
+    title = "Looking Pretty Fly For a Guy With a Bow Tie", points = 3,
+    description = "Give 6 propellers to the Doc and obtain the bow tie glider",
+    id = 405831, badge = "459153",
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x0F && ObtainedUpgrades() == 0x8F
 )
 
 achievement(
@@ -488,6 +531,13 @@ achievement(
               never(EdJumpedOnThisFrame()) && never(prev(CurrentHealth()) > CurrentHealth()) &&
               trigger_when(prev(EdYPosition()) < 0xC3B55715 && EdYPosition() >= 0xC3B55715)
 )
+
+//achievement(
+//    title = "That's a Spicy Pepper", points = 2,
+//    description = "Defeat the chili pepper in Vegetables' HQ using only a single Super Ed transformation",
+//    trigger = NotInDemoMode() && once(ChiliPepperHealth() == 0x03) && never(LevelId() != 0x18F8) && never(prev(EdCurrentState()) == 0x43B4 && EdCurrentState() != 0x43B4) &&
+//              trigger_when(prev(ChiliPepperHealth()) == 0x01 && ChiliPepperHealth() == 0x00)
+//)
 
 
 // ------------------------
