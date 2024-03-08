@@ -27,6 +27,12 @@ function DemoModeFlag() => byte(0x1136E5)
 //          bit7 = A Button
 function PlayerInputAButtonDown() => bit7(0x1257a3)
 
+// $1316A0: [8-bit] Level Restart Flag
+//          This flag is used to know when Restart has been selected from the pause menu. The Restart option is only available in certain levels.
+//          0x00 = Restart has been selected from the pause menu and the area is currently reloading
+//          0x01 = Default State
+function RestartLevelFlag() => byte(0x1316A0)
+
 // $13A9EC: [16-bit] Current Level ID
 //          A unique value for each loaded area of the game
 //
@@ -269,11 +275,30 @@ function SkiSlopeTimerFlag() => byte(0x2ABFC0)
 //          0x27 = Doc is freed
 function DocFreedFlag() => byte(0x2b8e3e)
 
-// $2E983C: [32-bit] Canyon Timer
-function CanyonTimer() => dword(0x2E983C)
+// $2E9860: [32-bit] Canyon Timer (Segment 5)
+//          Increases in value when the timer is active in the Canyon's fifth area (level ID = 0xAA8C).
+//          This value is initialized to the total time of all previous areas when the area is loaded.
+//          This value is in milliseconds. It will be the total time of the current Canyon run when the timer flag is set to 0x03.
+function CanyonTimer() => dword(0x2E9860)
 
 // $2E9868: [32-bit] Ski Slope Timer
+//          Increases in value when the timer is active on the Ski Slope.
+//          This value is the number of milliseconds on the current runnning timer.
+//          Note that the exact value shown in game may not always match this value 1-1, as the game does not show accurate decimal seconds on the timer - its just a fixed repeating sprite animation to make it appear like an accurate timer. However once the timer stops after reaching the end of the level, the time displayed on the timer in game will match this value 1-1.
 function SkiSlopeTimer() => dword(0x2E9868)
+
+// $2E9868: [32-bit] Ski Slope Timer Checkpoint
+//          When loading into a new area of the Ski Slope, this value will store the current value of the Ski Slope Timer.
+//          If the player pauses the game and choses to restart, the area will be reloaded and this value will be restored to the Ski Slope Timer address (0x2E9868).
+function SkiSlopeTimerCheckpoint() => dword(0x2E986C)
+
+// $2E9878: [8-bit] Canyon Timer Flag
+//          0x00 = Timer not active, Ed is ether at the beginning and has not started yet, or is currenty loading into another section in the level
+//          0x02 = Timer is active, Ed is in the process of playing through the level
+//          0x03 = Timer is not active, Ed is at the end of the level
+//
+//          When the game is paused this value remains at 0x02, even though the timer is not counting.
+function CanyonTimerFlag() => byte(0x2E9878)
 
 // $3A2DE3: [8-bit] Corn Boss Health
 //          Starts at 0x06 and drops by 0x02 each time the boss is hit.
@@ -291,16 +316,21 @@ function ChiliPepperHealth() => byte(0x3A3453)
 // ----- Constants -----
 // ---------------------
 
-TIMER_OFF = 0x00
-TIMER_OFF_NEW_RECORD = 0x03
-TIMER_ON = 0x02
-
 LEVEL_ID_SKI_SLOPE_AREA_1 = 0x70BC
 LEVEL_ID_SKI_SLOPE_AREA_2 = 0x0780
 LEVEL_ID_SKI_SLOPE_AREA_3 = 0x368C
 LEVEL_ID_SKI_SLOPE_AREA_4 = 0x7EB0
 
+LEVEL_ID_CANYON_AREA_1 = 0xEFE4
+LEVEL_ID_CANYON_AREA_2 = 0xF6BC
+LEVEL_ID_CANYON_AREA_3 = 0xAC6C
+LEVEL_ID_CANYON_AREA_4 = 0xFC6C
+LEVEL_ID_CANYON_AREA_5 = 0xAA8C
+
 AREA_ID_SKI_SLOPE = 1
+AREA_ID_CANYON = 5
+
+ED_STATE_PARACHUTING = 0x4220
 
 // ---------------------------
 // ----- Logic Functions -----
@@ -316,8 +346,13 @@ function InArea(areaId) {
     if (areaId == AREA_ID_SKI_SLOPE) {
         return CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_1) || CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_2) || CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_3) || CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4)
     }
+    if (areaId == AREA_ID_CANYON) {
+        return CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_1) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_2) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_3) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_4) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5)
+    }
     return false
 }
+
+function LevelRestartedOnThisFrame() => prev(RestartLevelFlag()) == 0x01 && RestartLevelFlag() == 0x00
 
 function EdJumpedOnThisFrame() => prev(JumpFlag()) == 0xFF && JumpFlag() == 0x00
 
@@ -327,7 +362,10 @@ function TotalAntidotesCollected() => SkiSlopeAntidotes() + SouthPlainAntidotes(
 function TotalThermometersCollected() => SkiSlopeThermometers() + SouthPlainThermometers() + DocsCaveThermometers() + VegetableHQThermometers() + NorthPlainThermometers() + CanyonThermometers() +
                                          GlacierCocktailThermometers() + PyramidThermometers() + PressureCookerThermometers() + MagicMushroomThermometers() + GroghsLairThermometers()
 
-function SkiSlopeLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4) && prev(SkiSlopeTimerFlag()) == TIMER_ON && (SkiSlopeTimerFlag() == TIMER_OFF || SkiSlopeTimerFlag() == TIMER_OFF_NEW_RECORD)
+function SkiSlopeLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4) && SkiSlopeTimerCheckpoint() != SkiSlopeTimer() && prev(SkiSlopeTimerFlag()) == 0x02 && (SkiSlopeTimerFlag() == 0x00 || SkiSlopeTimerFlag() == 0x03)
+
+function CanyonLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5) && prev(CanyonTimerFlag()) != 0x03 && CanyonTimerFlag() == 0x03
+function CanyonLevelTimeTrialCleared() => CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5) && prev(CanyonTimerFlag()) == 0x02 && CanyonTimerFlag() == 0x03
 
 function CollectedAllAntidotesInArea(antidoteCount) => prev(antidoteCount) == 0x13 && measured(antidoteCount == 0x14, when=NotInDemoMode(), format="raw")
 
@@ -532,6 +570,23 @@ achievement(
               trigger_when(prev(EdYPosition()) < 0xC3B55715 && EdYPosition() >= 0xC3B55715)
 )
 
+achievement(
+    title = "Speedy Gliding", points = 10,
+    description = "Complete a timed run of the Canyon with a time of 3 minutes or less",
+    id = 406467, badge = "459322",
+    trigger = NotInDemoMode() && CanyonTimer() <= 180000 && CanyonLevelTimeTrialCleared()
+)
+
+achievement(
+    title = "Holy Tusks", points = 10,
+    id = 406468, badge = "459323",
+    description = "Make it all the way through the Canyon without using the bow tie glider's parachute, losing a life, or restarting from the pause menu",
+    trigger = NotInDemoMode() && once(LevelId() == 0xEFE4 && CanyonTimerFlag() == 0x00) &&
+              never(!InArea(AREA_ID_CANYON)) && never(EdCurrentState() == ED_STATE_PARACHUTING) &&
+              never(prev(Lives()) > Lives()) && never(LevelRestartedOnThisFrame()) &&
+              trigger_when(CanyonLevelCleared())
+)
+
 //achievement(
 //    title = "That's a Spicy Pepper", points = 2,
 //    description = "Defeat the chili pepper in Vegetables' HQ using only a single Super Ed transformation",
@@ -544,15 +599,30 @@ achievement(
 // ----- Leaderboards -----
 // ------------------------
 
-function SkiSlopeTimerLeadboardValue() => SkiSlopeTimer() / 10
+function SkiSlopeTimerLeaderboardValue() => SkiSlopeTimer() / 10
+
+function CanyonTimerLeaderboardValue() => CanyonTimer() / 10
 
 leaderboard(
+    id=86730,
     title="Ski Slope Time Trial",
     description="Fastest time making it down the Ski Slope",
     start=SkiSlopeLevelCleared(),
     cancel=LevelId() != 0x7EB0,
     submit=SkiSlopeLevelCleared(),
-    value=SkiSlopeTimerLeadboardValue(),
+    value=SkiSlopeTimerLeaderboardValue(),
+    format="MILLISECS",
+    lower_is_better=true
+)
+
+leaderboard(
+    id=91778,
+    title="Canyon Time Trial",
+    description="Fastest time making it through the Canyon with the timer active",
+    start=CanyonLevelTimeTrialCleared(),
+    cancel=LevelId() != 0xAA8C,
+    submit=CanyonLevelTimeTrialCleared(),
+    value=CanyonTimerLeaderboardValue(),
     format="MILLISECS",
     lower_is_better=true
 )
