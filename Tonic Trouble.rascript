@@ -176,14 +176,24 @@ function EdYPosition() => dword(0x2A58C0)
 // $2A58C4: [32-bit] Ed's Z Position
 function EdZPosition() => dword(0x2A58C4)
 
-// $2AA886: [8-bit] [8-bit] Obtained Upgrades
-//0x00 = No upgrades
-//Individual bits can be checked to see if an upgrade is currently obtained.
-// The progression of upgrades is 0x00 -> 0x07 -> 0x0F ->
+// $2AA886: [16-bit] Obtained Upgrades
+//          0x0000 = No upgrades
+//          Individual bits can be checked to see if an upgrade is currently obtained.
+//          The progression of upgrades is 0x0000 -> 0x0007 -> 0x000F -> 0x008F -> 0x018F -> 0x038F -> 0x03FF
 //
-// bit0, bit1, bit2 = Basic Stick (all 3 bits must be set)
-// bit3 = Peashooter
-function ObtainedUpgrades() => byte(0x2AA886)
+//          bit0, bit1, bit2 = Basic Stick (all 3 bits must be set)
+//          bit3 = Peashooter
+//          bit4, bit5, bit6 = Pogo Stick (all 3 bits must be set)
+//          bit7 = Bow Tie Glider
+//          bit8 = Pressurized Goldfish Bowl
+//          bit9 = Chameleon Powder
+function ObtainedUpgrades() => word(0x2AA886)
+
+// $2AA88A: [8-bit] Current Peashooter Ammo
+//          The regular max value is 0xFA (250).
+//          If the value is 0xFF, Ed will have unlimited ammo.
+//          Unlimited ammo is granted any time Ed is in a traning mission, or permanently after Ed brings 5 of the 6 piggybanks to the Doc.
+function CurrentPeashooterAmmo() => byte(0x2AA88A)
 
 // $2AA888: [8-bit] Collected Dominos, max of 0x06 (6)
 function CollectedDominos() => byte(0x2AA888)
@@ -332,6 +342,23 @@ AREA_ID_CANYON = 5
 
 ED_STATE_PARACHUTING = 0x4220
 
+MINION_DEFEATED = 0x01
+MINION_NOT_DEFEATED = 0x10
+
+
+// ---------------------
+// ------ Lookups ------
+// ---------------------
+
+// Key is level ID, value is array of enemy defeated flag addresses
+CanyonEnemyDefeatedLookup = {
+    LEVEL_ID_CANYON_AREA_1: [0x3A40A0, 0x39EF8C],
+    LEVEL_ID_CANYON_AREA_2: [0x39E930, 0x3A3A44, 0x3A4250, 0x3A4A5C, 0x3A5268],
+    LEVEL_ID_CANYON_AREA_3: [0x39E700, 0x3A3814],
+    LEVEL_ID_CANYON_AREA_5: [0x39EA9C, 0x3A3BB0, 0x3A43BC, 0x3A4BC8, 0x3A53D4]
+}
+
+
 // ---------------------------
 // ----- Logic Functions -----
 // ---------------------------
@@ -371,6 +398,17 @@ function CollectedAllAntidotesInArea(antidoteCount) => prev(antidoteCount) == 0x
 
 function CollectedAllThermometersInArea(thermomiterCount) => prev(thermomiterCount) == 0x09 && measured(thermomiterCount == 0x0A, when=NotInDemoMode(), format="raw")
 
+function MinionDefeatedOnThisFrame(address) => prev(byte(address)) == MINION_NOT_DEFEATED && byte(address) == MINION_DEFEATED
+
+function AllCanyonEnemyDefeatedConditions() {
+    enemiesDefeated = []
+    for key in CanyonEnemyDefeatedLookup {
+        for address in CanyonEnemyDefeatedLookup[key]
+            array_push(enemiesDefeated, LevelId() ==  key && MinionDefeatedOnThisFrame(address))
+    }
+    return enemiesDefeated
+}
+
 
 // ------------------------
 // ----- Achievements -----
@@ -395,20 +433,48 @@ achievement(
     title = "Six Springs Ready and Jumping", points = 3,
     description = "Give 6 springs to the Doc and obtain the peashooter",
     id = 405830, badge = "459152",
-    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x07 && ObtainedUpgrades() == 0x0F
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x0007 && ObtainedUpgrades() == 0x000F
 )
 
 achievement(
     title = "Looking Pretty Fly For a Guy With a Bow Tie", points = 3,
     description = "Give 6 propellers to the Doc and obtain the bow tie glider",
     id = 405831, badge = "459153",
-    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x0F && ObtainedUpgrades() == 0x8F
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x000F && ObtainedUpgrades() == 0x008F
+)
+
+achievement(
+    title = "Like a Graceful Purple Dolphin", points = 3,
+    description = "Give 6 jumping stones to the Doc and obtain the pressurized goldfish bowl",
+    id = 406714, badge = "460217",
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x008F && ObtainedUpgrades() == 0x018F
+)
+
+achievement(
+    title = "More Than Just a Party Trick", points = 3,
+    description = "Give 6 feathers to the Doc and obtain the chameleon powder",
+    id = 406721, badge = "460224",
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x018F && ObtainedUpgrades() == 0x038F
+)
+
+achievement(
+    title = "Just What the Doctor Ordered", points = 3,
+    description = "Give 6 dominoes to the Doc and obtain the pogo stick",
+    id = 407123, badge = "460855",
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x038F && ObtainedUpgrades() == 0x03FF
+)
+
+achievement(
+    title = "Piggynapped", points = 3,
+    description = "Give 5 wild piggybanks to the Doc and obtain unlimited ammo for the peashooter",
+    id = 407168, badge = "460905",
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && ObtainedUpgrades() == 0x03FF && CollectedPiggyBanks() == 0x05 && prev(CurrentPeashooterAmmo()) < 0xFF && CurrentPeashooterAmmo() == 0xFF
 )
 
 achievement(
     title = "Speedy Sledding", points = 5,
     description = "Make it down the Ski Slope with a time of 1 minute and 30 seconds or less",
-    id = 403627, badge = "456657",
+    id = 403627, badge = "460215",
     trigger = NotInDemoMode() && SkiSlopeTimer() <= 90000 && SkiSlopeLevelCleared()
 )
 
@@ -585,6 +651,22 @@ achievement(
               never(!InArea(AREA_ID_CANYON)) && never(EdCurrentState() == ED_STATE_PARACHUTING) &&
               never(prev(Lives()) > Lives()) && never(LevelRestartedOnThisFrame()) &&
               trigger_when(CanyonLevelCleared())
+)
+
+
+// Note that the achievement generated from this script will not match the finalized achievement logic 1-1 as the code does not seem to support compolex conditions with ResetNextIf lines
+achievement(
+    title = "Cloak Dart and Stick", points = 10,
+    description = "Start from the first area of the Canyon and defeat every enemy in the Canyon without ever taking damage or restarting from the pause menu",
+    id = 406712, badge = "460213",
+    trigger = NotInDemoMode() && never(!InArea(AREA_ID_CANYON)) && never(LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
+              disable_when(
+                 once(prev(CurrentHealth()) > CurrentHealth()),
+                 until=LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
+              disable_when(
+                 once(LevelRestartedOnThisFrame()),
+                 until=LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
+              measured(tally(14, AllCanyonEnemyDefeatedConditions()))
 )
 
 //achievement(
