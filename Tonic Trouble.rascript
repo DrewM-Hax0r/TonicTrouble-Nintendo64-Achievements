@@ -331,6 +331,13 @@ LEVEL_ID_SKI_SLOPE_AREA_2 = 0x0780
 LEVEL_ID_SKI_SLOPE_AREA_3 = 0x368C
 LEVEL_ID_SKI_SLOPE_AREA_4 = 0x7EB0
 
+LEVEL_ID_VEGHQ_START = 0xE56C
+LEVEL_ID_VEGHQ_AREA_1 = 0xCFF8
+LEVEL_ID_VEGHQ_AREA_2 = 0x29A8
+LEVEL_ID_VEGHQ_AREA_3 = 0x18F8
+LEVEL_ID_VEGHQ_AREA_4 = 0x7FA0
+LEVEL_ID_VEGHQ_AREA_5 = 0x7BD8
+
 LEVEL_ID_CANYON_AREA_1 = 0xEFE4
 LEVEL_ID_CANYON_AREA_2 = 0xF6BC
 LEVEL_ID_CANYON_AREA_3 = 0xAC6C
@@ -338,6 +345,7 @@ LEVEL_ID_CANYON_AREA_4 = 0xFC6C
 LEVEL_ID_CANYON_AREA_5 = 0xAA8C
 
 AREA_ID_SKI_SLOPE = 1
+AREA_ID_VEG_HQ = 3
 AREA_ID_CANYON = 5
 
 ED_STATE_PARACHUTING = 0x4220
@@ -358,10 +366,26 @@ CanyonEnemyDefeatedLookup = {
     LEVEL_ID_CANYON_AREA_5: [0x39EA9C, 0x3A3BB0, 0x3A43BC, 0x3A4BC8, 0x3A53D4]
 }
 
+// Key is level ID, value is array of enemy defeated flag addresses
+VegHQEnemyDefeatedLookup = {
+    LEVEL_ID_VEGHQ_AREA_2: [0x3A022C, 0x3A1408, 0x3A1C1C, 0x3A2634],
+    LEVEL_ID_VEGHQ_AREA_3: [0x3A43C0, 0x3A0920, 0x3A1AF4],
+    LEVEL_ID_VEGHQ_AREA_4: [0x3A045C],
+    LEVEL_ID_VEGHQ_AREA_5: [0x3A01A8, 0x3A1E98]
+}
+
 
 // ---------------------------
 // ----- Logic Functions -----
 // ---------------------------
+
+function DictonaryArrayLength(dict) {
+    count = 0
+    for key in dict {
+        count = count + length(dict[key])
+    }
+    return count
+}
 
 function AtTitleScreens() => GameStateIdentifier() == 0x0E70
 
@@ -373,6 +397,9 @@ function InArea(areaId) {
     if (areaId == AREA_ID_SKI_SLOPE) {
         return CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_1) || CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_2) || CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_3) || CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4)
     }
+    if (areaId == AREA_ID_VEG_HQ) {
+        return CurrentLoadedZoneIs(LEVEL_ID_VEGHQ_AREA_1) || CurrentLoadedZoneIs(LEVEL_ID_VEGHQ_AREA_2) || CurrentLoadedZoneIs(LEVEL_ID_VEGHQ_AREA_3) || CurrentLoadedZoneIs(LEVEL_ID_VEGHQ_AREA_4) || CurrentLoadedZoneIs(LEVEL_ID_VEGHQ_AREA_5)
+    }
     if (areaId == AREA_ID_CANYON) {
         return CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_1) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_2) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_3) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_4) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5)
     }
@@ -382,6 +409,9 @@ function InArea(areaId) {
 function LevelRestartedOnThisFrame() => prev(RestartLevelFlag()) == 0x01 && RestartLevelFlag() == 0x00
 
 function EdJumpedOnThisFrame() => prev(JumpFlag()) == 0xFF && JumpFlag() == 0x00
+
+function PreviousFrameTotalAntidotesCollected() => prev(SkiSlopeAntidotes()) + prev(SouthPlainAntidotes()) + prev(DocsCaveAntidotes()) + prev(VegetableHQAntidotes()) + prev(NorthPlainAntidotes()) +
+                                      prev(CanyonAntidotes()) + prev(GlacierCocktailAntidotes()) + prev(PyramidAntidotes()) + prev(PressureCookerAntidotes())
 
 function TotalAntidotesCollected() => SkiSlopeAntidotes() + SouthPlainAntidotes() + DocsCaveAntidotes() + VegetableHQAntidotes() + NorthPlainAntidotes() +
                                       CanyonAntidotes() + GlacierCocktailAntidotes() + PyramidAntidotes() + PressureCookerAntidotes()
@@ -405,6 +435,15 @@ function AllCanyonEnemyDefeatedConditions() {
     for key in CanyonEnemyDefeatedLookup {
         for address in CanyonEnemyDefeatedLookup[key]
             array_push(enemiesDefeated, LevelId() ==  key && MinionDefeatedOnThisFrame(address))
+    }
+    return enemiesDefeated
+}
+
+function AllEnemyDefeatedConditions(enemyDefeatedLookup) {
+    enemiesDefeated = []
+    for key in enemyDefeatedLookup {
+        for address in enemyDefeatedLookup[key]
+            array_push(enemiesDefeated, once(LevelId() ==  key && MinionDefeatedOnThisFrame(address)))
     }
     return enemiesDefeated
 }
@@ -469,6 +508,13 @@ achievement(
     description = "Give 5 wild piggybanks to the Doc and obtain unlimited ammo for the peashooter",
     id = 407168, badge = "460905",
     trigger = NotInDemoMode() && LevelId() == 0xF0EC && ObtainedUpgrades() == 0x03FF && CollectedPiggyBanks() == 0x05 && prev(CurrentPeashooterAmmo()) < 0xFF && CurrentPeashooterAmmo() == 0xFF
+)
+
+achievement(
+    title = "Fully Immune", points = 5,
+    description = "Collect 160 antidotes and become immune to the effects of the tonic",
+    id = 407467, badge = "461334",
+    trigger = NotInDemoMode() && PreviousFrameTotalAntidotesCollected() == 159 && TotalAntidotesCollected() == 160
 )
 
 achievement(
@@ -653,6 +699,16 @@ achievement(
               trigger_when(CanyonLevelCleared())
 )
 
+achievement(
+    title = "Clearing the Patch", points = 10,
+    description = "Return to the Vegetables' HQ after having collected the 6 springs and defeat every unique enemy without ever taking damage or losing a life",
+    id = 407471, badge = "461369",
+    trigger = NotInDemoMode() && never(CollectedSprings() < 0x06) && never(prev(CurrentHealth()) > CurrentHealth()) && never(!InArea(AREA_ID_VEG_HQ)) &&
+              disable_when(
+                 once(prev(CurrentHealth()) > CurrentHealth()),
+                 until=LevelId() == LEVEL_ID_VEGHQ_START) &&
+              measured(tally(DictonaryArrayLength(VegHQEnemyDefeatedLookup), AllEnemyDefeatedConditions(VegHQEnemyDefeatedLookup)))
+)
 
 // Note that the achievement generated from this script will not match the finalized achievement logic 1-1 as the code does not seem to support compolex conditions with ResetNextIf lines
 achievement(
@@ -666,7 +722,7 @@ achievement(
               disable_when(
                  once(LevelRestartedOnThisFrame()),
                  until=LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
-              measured(tally(14, AllCanyonEnemyDefeatedConditions()))
+              measured(tally(DictonaryArrayLength(CanyonEnemyDefeatedLookup), AllCanyonEnemyDefeatedConditions()))
 )
 
 //achievement(
