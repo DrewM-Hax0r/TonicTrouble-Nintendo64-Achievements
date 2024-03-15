@@ -99,7 +99,8 @@ function RestartLevelFlag() => byte(0x1316A0)
 //          0xEDEC = Pyramid (Area 4, Poison Water)
 //          0x9448 = Pyramid (Area 5, Rolling Boulders, Mummy Fight)
 //          0x0C38 = Pyramid (Area 6, Pool)
-//          0x90F8 = Pyramid (Area 7, Rotating Wall Puzzle, Bathtub, Exit 2)
+//          0xD868 = Pyramid (Area 7, Secret Puzzle Room)
+//          0x90F8 = Pyramid (Area 8, Rotating Wall Puzzle, Bathtub, Exit 2)
 //
 //          0xC3C8 = Pressure Cooker (Opening Cutscene)
 //          0xEE90 = Pressure Cooker (Area 1, Entrance)
@@ -135,6 +136,12 @@ function CollectedThermometersInCurrentLevel() => byte(0x13A9F1)
 //          Increments by 0x01 when the boss room is left after the boss was defeated.
 //          When the value is 0x04, the next time it increments it will instead reset back to 0x01 to repeat the dialogue cycle.
 function CornBossDialogueFlag() => byte(0x1E31B9)
+
+// $1E6B7F: [8-bit] North Plain Trap Door Flag
+//          Identifies if the breakable trap door in the North Plain has been broken while in Level ID 0x8D8C
+//          0x01 = Broken
+//          0x03 = Not Broken
+function NorthPlainTrapDoorFlag() => byte(0x1E6B7F)
 
 // $29A89B: [8-bit] Current Health
 //          Ed may still be alive if value is 0x00, as a life is not lost until another hit is taken after this value is 0x00
@@ -175,6 +182,19 @@ function EdYPosition() => dword(0x2A58C0)
 
 // $2A58C4: [32-bit] Ed's Z Position
 function EdZPosition() => dword(0x2A58C4)
+
+// $2A8958: [16-bit] Chameleon Powder Transformation
+//          This value changes when using the chameleon powder to transform into different characters/objects.
+//          Note that when no tranformation is in place, the value that identifies Ed's not-transformed state matches the current level ID.
+//
+//          0x30B4 = Tomato (South Plain: 0xC24C)
+//          0x66F8 = Mummy (South Plain: 0x4BC0) 
+//          0xAAD0 = Dino-Cow (South Plain: 0x53BC)
+//
+//          0x2FD4 = Bowling Bomb (Doc's Cave: 0xEF8C)
+//
+//          0xFCE8 = Scarab (Pyramid: 0xD868)
+function ChameleonPowderTransformation() => word(0x2A8958)
 
 // $2AA886: [16-bit] Obtained Upgrades
 //          0x0000 = No upgrades
@@ -279,6 +299,15 @@ function MagicMushroomThermometers() => byte(0x2AA8C2)
 //          0x03 = Ed finished a run on the Ski Slope, and it was a new PB record.
 function SkiSlopeTimerFlag() => byte(0x2ABFC0)
 
+// $2A56E0: [8-bit] Ed Movement Flag
+//          Can be used to check if Ed is in certain movement states.
+//          0x00 = Idle
+//          0x01 = Moving on the ground
+//          0x02 = Moving on the ground and changing direction or holding the peashooter
+//          0x08 = In the air, falling, may also be moving while on the pogo stick and in the air from a hop
+//          0x09 = In the air, gliding
+function EdMovementFlag() => byte(0x2A56E0)
+
 // $2B8E3E: [8-bit] Doc Freed Flag
 //          Changes value the first frame the door the doc is locked behind starts to open.
 //          0x00 = Doc not yet freed
@@ -321,6 +350,13 @@ function CornBossHealth() => byte(0x3A2DE3)
 //          Chili Pepper is defeated when value reaches 0x00.
 function ChiliPepperHealth() => byte(0x3A3453)
 
+// $351484: [8-bit] Pyramid Target Puzzle Flag
+//          When in pyramid level id 0xD868, tracks progress solving the target puzzle.
+//          This value starts at 0x00 when no progress has been made, and increments by 0x01 each time a target is hit in the correct order.
+//          If at any time a target is hit in the incorrect order, the value resets to 0x00 and the puzzle must be solved again from the beginning.
+//          When the value reaches 0x05, all targets have been hit in the correct order and the puzzle is solved.
+function PyramidTargetPuzzleFlag() => byte(0x351484)
+
 
 // ---------------------
 // ----- Constants -----
@@ -350,8 +386,21 @@ AREA_ID_CANYON = 5
 
 ED_STATE_PARACHUTING = 0x4220
 
+ED_MOVEMENT_FALLING = 0x08
+ED_MOVEMENT_GLIDING = 0x09
+
+TRANSFORMATION_ID_TOMATO = 0x00
+TRANSFORMATION_ID_MUMMY = 0x01
+TRANSFORMATION_ID_DINO_COW = 0x02
+TRANSFORMATION_ID_BOWLING_BOMB = 0x03
+TRANSFORMATION_ID_SCARAB = 0x05
+
 MINION_DEFEATED = 0x01
 MINION_NOT_DEFEATED = 0x10
+
+NORTH_PLAIN_PLATFORM_TARGET_ON = 0x02
+NORTH_PLAIN_PLATFORM_TARGET_OFF = 0x01
+NORTH_PLAIN_PLATFORM_TARGETS = [0x347608, 0x347650, 0x347698, 0x3476E0, 0x347728, 0x347770, 0x3477B8, 0x347800, 0x347848, 0x347890, 0x3478d8, 0x347920]
 
 
 // ---------------------
@@ -410,6 +459,29 @@ function LevelRestartedOnThisFrame() => prev(RestartLevelFlag()) == 0x01 && Rest
 
 function EdJumpedOnThisFrame() => prev(JumpFlag()) == 0xFF && JumpFlag() == 0x00
 
+function EdStartedGlidingOnThisFrame() => prev(EdMovementFlag()) != ED_MOVEMENT_GLIDING && EdMovementFlag() == ED_MOVEMENT_GLIDING
+
+function EdIsGliding() => EdMovementFlag() == ED_MOVEMENT_GLIDING
+
+function EdTransformedOnThisFrame(transformationId) {
+    if (transformationId == TRANSFORMATION_ID_TOMATO) {
+        return LevelId() == 0xC24C && prev(ChameleonPowderTransformation()) == 0xC24C && ChameleonPowderTransformation() == 0x30B4
+    }
+    if (transformationId == TRANSFORMATION_ID_MUMMY) {
+        return LevelId() == 0x4BC0 && prev(ChameleonPowderTransformation()) == 0x4BC0 && ChameleonPowderTransformation() == 0x66F8
+    }
+    if (transformationId == TRANSFORMATION_ID_DINO_COW) {
+        return LevelId() == 0x53BC && prev(ChameleonPowderTransformation()) == 0x53BC && ChameleonPowderTransformation() == 0xAAD0
+    }
+    if (transformationId == TRANSFORMATION_ID_BOWLING_BOMB) {
+        return LevelId() == 0xEF8C && prev(ChameleonPowderTransformation()) == 0xEF8C && ChameleonPowderTransformation() == 0x2FD4
+    }
+    if (transformationId == TRANSFORMATION_ID_SCARAB) {
+        return LevelId() == 0xD868 && prev(ChameleonPowderTransformation()) == 0xD868 && ChameleonPowderTransformation() == 0xFCE8
+    }
+    return false
+}
+
 function PreviousFrameTotalAntidotesCollected() => prev(SkiSlopeAntidotes()) + prev(SouthPlainAntidotes()) + prev(DocsCaveAntidotes()) + prev(VegetableHQAntidotes()) + prev(NorthPlainAntidotes()) +
                                       prev(CanyonAntidotes()) + prev(GlacierCocktailAntidotes()) + prev(PyramidAntidotes()) + prev(PressureCookerAntidotes())
 
@@ -446,6 +518,13 @@ function AllEnemyDefeatedConditions(enemyDefeatedLookup) {
             array_push(enemiesDefeated, once(LevelId() ==  key && MinionDefeatedOnThisFrame(address)))
     }
     return enemiesDefeated
+}
+
+function NorthPlainPlatformTargetsActivatedConditions() {
+    activated = []
+    for address in NORTH_PLAIN_PLATFORM_TARGETS
+        array_push(activated, once(LevelId() == 0x3610 && prev(byte(address)) == NORTH_PLAIN_PLATFORM_TARGET_OFF && byte(address) == NORTH_PLAIN_PLATFORM_TARGET_ON))
+     return activated
 }
 
 
@@ -665,6 +744,40 @@ achievement(
 )
 
 achievement(
+    title = "Seeing Red", points = 2,
+    description = "Transform into a tomato in South Plain",
+    id = 408224, badge = "462577",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_TOMATO)
+)
+
+achievement(
+    title = "Mummy Masquerade", points = 2,
+    description = "Transform into the mummy in South Plain",
+    id = 408223, badge = "462576",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_MUMMY)
+)
+
+achievement(
+    title = "Prehistoric Party", points = 2,
+    description = "Transform into a dino-cow in South Plain",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_DINO_COW)
+)
+
+achievement(
+    title = "Just Don't Touch Anything", points = 2,
+    description = "Transform into a bowling bomb in Doc's Cave",
+    id = 408222, badge = "462575",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_BOWLING_BOMB)
+)
+
+achievement(
+    title = "Scarab-in Around", points = 2,
+    description = "Transform into a scarab in the Pyramid",
+    id = 408230, badge = "462585",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_SCARAB)
+)
+
+achievement(
     title = "You've Got Cornstarch On Your Hands", points = 3,
     description = "Defeat the 5th member of the corn people's revolutionary army",
     id = 404049, badge = "457428",
@@ -710,10 +823,35 @@ achievement(
               measured(tally(DictonaryArrayLength(VegHQEnemyDefeatedLookup), AllEnemyDefeatedConditions(VegHQEnemyDefeatedLookup)))
 )
 
-// Note that the achievement generated from this script will not match the finalized achievement logic 1-1 as the code does not seem to support compolex conditions with ResetNextIf lines
+achievement(
+    title = "The Floor is Lava", points = 5,
+    description = "In the first area of the North Plain, start gliding before reaching the castle and enter the next loading zone without ever touching the ground",
+    id = 408019, badge = "462297",
+    trigger = NotInDemoMode() && never(!(EdMovementFlag() == ED_MOVEMENT_FALLING || EdMovementFlag() == ED_MOVEMENT_GLIDING)) &&
+              once(LevelId() == 0xB1D8 && EdIsGliding() && EdXPosition() < 0x43DC0000 && EdXPosition() > 0x43D90000 && EdYPosition() > 0xC2600000) &&
+              trigger_when(EdYPosition() >= 0x42F60000 && EdYPosition() <= 0x43020000 && EdXPosition() <= 0x43A50000)
+    
+)
+
+achievement(
+    title = "Open Seasame", points = 2,
+    description = "Break the hidden trapdoor in the North Plain using the pogo stick",
+    id = 408185, badge = "462537",
+    trigger = NotInDemoMode() && LevelId() == 0x8D8C && prev(NorthPlainTrapDoorFlag()) == 0x03 && NorthPlainTrapDoorFlag() == 0x01
+)
+
+achievement(
+    title = "Traversing With Care", points = 5,
+    description = "Hit every target for the moving Grögh platform in the North Plain without ever taking damage or losing a life",
+    id = 408215, badge = "462566",
+    trigger = NotInDemoMode() && never(LevelId() != 0x3610) && never(prev(CurrentHealth()) > CurrentHealth()) &&
+              measured(tally(length(NORTH_PLAIN_PLATFORM_TARGETS), NorthPlainPlatformTargetsActivatedConditions()))
+)
+
+// Note that the achievement generated from this script will not match the finalized achievement logic 1-1 as the code does not seem to support complex conditions with ResetNextIf lines
 achievement(
     title = "Cloak Dart and Stick", points = 10,
-    description = "Start from the first area of the Canyon and defeat every enemy in the Canyon without ever taking damage or restarting from the pause menu",
+    description = "Start from the first area of the Canyon and defeat every enemy in the Canyon without ever taking damage, losing a life, or restarting from the pause menu",
     id = 406712, badge = "460213",
     trigger = NotInDemoMode() && never(!InArea(AREA_ID_CANYON)) && never(LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
               disable_when(
@@ -723,6 +861,13 @@ achievement(
                  once(LevelRestartedOnThisFrame()),
                  until=LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
               measured(tally(DictonaryArrayLength(CanyonEnemyDefeatedLookup), AllCanyonEnemyDefeatedConditions()))
+)
+
+achievement(
+    title = "Tonic Raider", points = 5,
+    description = "Solve the target puzzle in the Pyramid's secret room",
+    id = 408229, badge = "462584",
+    trigger = NotInDemoMode() && LevelId() == 0xD868 && prev(PyramidTargetPuzzleFlag()) == 0x04 && PyramidTargetPuzzleFlag() == 0x05
 )
 
 //achievement(
@@ -832,7 +977,7 @@ rich_presence_conditional_display(LevelId() == 0xE700 || LevelId() == 0xCE5C || 
     rich_presence_value("Number", TotalAntidotesCollected()),
     rich_presence_value("Number", TotalThermometersCollected())
 )
-rich_presence_conditional_display(LevelId() == 0xFD38 || LevelId() == 0x0AB4 || LevelId() == 0x50E0 || LevelId() == 0x3A20 || LevelId() == 0xEDEC || LevelId() == 0x9448 || LevelId() == 0x0C38 || LevelId() == 0x90F8, "Ed is in the Pyramid • {0}/6 Dominos • {1}/180 Antidotes • {2}/110 Thermometers",
+rich_presence_conditional_display(LevelId() == 0xFD38 || LevelId() == 0x0AB4 || LevelId() == 0x50E0 || LevelId() == 0x3A20 || LevelId() == 0xEDEC || LevelId() == 0x9448 || LevelId() == 0x0C38 || LevelId() == 0xD868 || LevelId() == 0x90F8, "Ed is in the Pyramid • {0}/6 Dominos • {1}/180 Antidotes • {2}/110 Thermometers",
     rich_presence_value("Number", CollectedDominos()),
     rich_presence_value("Number", TotalAntidotesCollected()),
     rich_presence_value("Number", TotalThermometersCollected())
