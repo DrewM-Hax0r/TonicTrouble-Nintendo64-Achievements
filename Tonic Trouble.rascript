@@ -33,6 +33,13 @@ function PlayerInputAButtonDown() => bit7(0x1257a3)
 //          0x01 = Default State
 function RestartLevelFlag() => byte(0x1316A0)
 
+// $139833: [8-bit] Game Paused Flag
+//          Can be used to determine if the game is at the pause screen.
+//          This value changes to 0x01 as soon as the start button is pressed and will not return to 0x00 until the full unpaused animation sequence has finished playing and the game world starts moving.
+//          0x00 = Not Paused
+//          0x01 = Paused
+function GamePausedFlag() => byte(0x139833)
+
 // $13A9EC: [16-bit] Current Level ID
 //          A unique value for each loaded area of the game
 //
@@ -143,6 +150,10 @@ function CornBossDialogueFlag() => byte(0x1E31B9)
 //          0x03 = Not Broken
 function NorthPlainTrapDoorFlag() => byte(0x1E6B7F)
 
+// $29A89A: [8-bit] Max Health, max of 0x0F (15)
+//          Increases by 0x01 each time 10 thermometers are collected.
+function MaxHealth() => byte(0x29A89A)
+
 // $29A89B: [8-bit] Current Health
 //          Ed may still be alive if value is 0x00, as a life is not lost until another hit is taken after this value is 0x00
 function CurrentHealth() => byte(0x29A89B)
@@ -190,10 +201,10 @@ function EdZPosition() => dword(0x2A58C4)
 //          0x30B4 = Tomato (South Plain: 0xC24C)
 //          0x66F8 = Mummy (South Plain: 0x4BC0) 
 //          0xAAD0 = Dino-Cow (South Plain: 0x53BC)
-//
 //          0x2FD4 = Bowling Bomb (Doc's Cave: 0xEF8C)
-//
 //          0xFCE8 = Scarab (Pyramid: 0xD868)
+//          0x9524 = Grögh (Pressure Cooker: 0x275C)
+//          0x5068 = Boulder (Grögh's Lair: 0x2D00)
 function ChameleonPowderTransformation() => word(0x2A8958)
 
 // $2AA886: [16-bit] Obtained Upgrades
@@ -339,6 +350,31 @@ function SkiSlopeTimerCheckpoint() => dword(0x2E986C)
 //          When the game is paused this value remains at 0x02, even though the timer is not counting.
 function CanyonTimerFlag() => byte(0x2E9878)
 
+// $3509BE: [8-bit] Main Quest Progression Flag
+//          Note that this value can only be relied on when loaded into the Doc's workshop area (level id 0xF0EC).
+//          Increments in value when taking to the Doc during key moments of the main quest.
+//
+//          0x02 = Ed gives 6 springs to the Doc and recieves the Peashooter upgrade
+//          0x03 = Ed gives 6 propellers to the Doc and recieves the Bow Tie glider upgrade
+//          0x04 = Ed gives 6 Jumping Stones to the Doc and recieves the Pressurized Goldfish Bowl upgrade
+//          0x05 = Ed gives 6 feathers to the Doc and recieves the Chameleon Powder upgrade
+//          0x06 = Ed gives 6 Dominoes to the Doc and recieves the Pogo Stick upgrade
+//          0x07 = Ed gives the 6th piggybank to the Doc and the catapult is now operational
+function MainQuestProgressionFlag() => byte(0x3509BE)
+
+// $351484: [8-bit] Pyramid Target Puzzle Flag
+//          When in pyramid level id 0xD868, tracks progress solving the target puzzle.
+//          This value starts at 0x00 when no progress has been made, and increments by 0x01 each time a target is hit in the correct order.
+//          If at any time a target is hit in the incorrect order, the value resets to 0x00 and the puzzle must be solved again from the beginning.
+//          When the value reaches 0x05, all targets have been hit in the correct order and the puzzle is solved.
+function PyramidTargetPuzzleFlag() => byte(0x351484)
+
+// $3A0D60: [32-bit] Ed's Y Position (Magic Mushroom's Hideout Slide)
+function EdYPositionMagicMushroomHideout() => dword(0x3A0D60)
+
+// $3A0D64: [32-bit] Ed's Z Position (Magic Mushroom's Hideout Slide)
+function EdZPositionMagicMushroomHideout() => dword(0x3A0D64)
+
 // $3A2DE3: [8-bit] Corn Boss Health
 //          Starts at 0x06 and drops by 0x02 each time the boss is hit.
 //          Boss is defeated when value reaches 0x00.
@@ -350,12 +386,19 @@ function CornBossHealth() => byte(0x3A2DE3)
 //          Chili Pepper is defeated when value reaches 0x00.
 function ChiliPepperHealth() => byte(0x3A3453)
 
-// $351484: [8-bit] Pyramid Target Puzzle Flag
-//          When in pyramid level id 0xD868, tracks progress solving the target puzzle.
-//          This value starts at 0x00 when no progress has been made, and increments by 0x01 each time a target is hit in the correct order.
-//          If at any time a target is hit in the incorrect order, the value resets to 0x00 and the puzzle must be solved again from the beginning.
-//          When the value reaches 0x05, all targets have been hit in the correct order and the puzzle is solved.
-function PyramidTargetPuzzleFlag() => byte(0x351484)
+// $3AE313: [8-bit] Grögh Boss Health
+//          During Grögh boss fight (final phase), level id = 0xFFF8
+//          Max value of 0x03.
+//          Decreases by 0x01 each time the boss is hit.
+//          Boss is defeated when the value reaches 0x00.
+function GroghBossHealth() => byte(0x3AE313)
+
+// $3C7713: [8-bit] Magic Mushroom Boss Health
+//          During Magic Mushroom boss fight, level id = 0x045C
+//          Max value of 0x08.
+//          Decreases by 0x01 each time the boss is hit.
+//          Boss is defeated when the value reaches 0x00.
+function MagicMushroomBossHealth() => byte(0x3C7713)
 
 
 // ---------------------
@@ -380,9 +423,15 @@ LEVEL_ID_CANYON_AREA_3 = 0xAC6C
 LEVEL_ID_CANYON_AREA_4 = 0xFC6C
 LEVEL_ID_CANYON_AREA_5 = 0xAA8C
 
+LEVEL_ID_MUSHROOM_HIDEOUT_AREA_1 = 0x57A8
+LEVEL_ID_MUSHROOM_HIDEOUT_AREA_2 = 0x7FB8
+LEVEL_ID_MUSHROOM_HIDEOUT_AREA_3 = 0x3448
+LEVEL_ID_MUSHROOM_HIDEOUT_AREA_4 = 0x045C
+
 AREA_ID_SKI_SLOPE = 1
 AREA_ID_VEG_HQ = 3
 AREA_ID_CANYON = 5
+AREA_ID_MUSHROOM_SLIDE = 9
 
 ED_STATE_PARACHUTING = 0x4220
 
@@ -394,6 +443,8 @@ TRANSFORMATION_ID_MUMMY = 0x01
 TRANSFORMATION_ID_DINO_COW = 0x02
 TRANSFORMATION_ID_BOWLING_BOMB = 0x03
 TRANSFORMATION_ID_SCARAB = 0x05
+TRANSFORMATION_ID_GROGH = 0x06
+TRANSFORMATION_ID_BOULDER = 0x07
 
 MINION_DEFEATED = 0x01
 MINION_NOT_DEFEATED = 0x10
@@ -401,6 +452,12 @@ MINION_NOT_DEFEATED = 0x10
 NORTH_PLAIN_PLATFORM_TARGET_ON = 0x02
 NORTH_PLAIN_PLATFORM_TARGET_OFF = 0x01
 NORTH_PLAIN_PLATFORM_TARGETS = [0x347608, 0x347650, 0x347698, 0x3476E0, 0x347728, 0x347770, 0x3477B8, 0x347800, 0x347848, 0x347890, 0x3478d8, 0x347920]
+
+MUSHROOM_SLIDE_START_POSITION = 0xC4E33935
+MUSHROOM_SLIDE_END_POSITION = 0xC456B8C2
+
+MUSHROOM_BOSS_MAX_HEALTH = 0x08
+GROGH_BOSS_MAX_HEALTH = 0x03
 
 
 // ---------------------
@@ -452,10 +509,15 @@ function InArea(areaId) {
     if (areaId == AREA_ID_CANYON) {
         return CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_1) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_2) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_3) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_4) || CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5)
     }
+    if (areaId == AREA_ID_MUSHROOM_SLIDE) {
+        return CurrentLoadedZoneIs(LEVEL_ID_MUSHROOM_HIDEOUT_AREA_1) || CurrentLoadedZoneIs(LEVEL_ID_MUSHROOM_HIDEOUT_AREA_2) || CurrentLoadedZoneIs(LEVEL_ID_MUSHROOM_HIDEOUT_AREA_3)
+    }
     return false
 }
 
 function LevelRestartedOnThisFrame() => prev(RestartLevelFlag()) == 0x01 && RestartLevelFlag() == 0x00
+
+function LostALife() => prev(Lives()) > Lives()
 
 function EdJumpedOnThisFrame() => prev(JumpFlag()) == 0xFF && JumpFlag() == 0x00
 
@@ -479,6 +541,12 @@ function EdTransformedOnThisFrame(transformationId) {
     if (transformationId == TRANSFORMATION_ID_SCARAB) {
         return LevelId() == 0xD868 && prev(ChameleonPowderTransformation()) == 0xD868 && ChameleonPowderTransformation() == 0xFCE8
     }
+    if (transformationId == TRANSFORMATION_ID_GROGH) {
+        return LevelId() == 0x275C && prev(ChameleonPowderTransformation()) == 0x275C && ChameleonPowderTransformation() == 0x9524
+    }
+    if (transformationId == TRANSFORMATION_ID_BOULDER) {
+        return LevelId() == 0x2D00 && prev(ChameleonPowderTransformation()) == 0x2D00 && ChameleonPowderTransformation() == 0x5068
+    }
     return false
 }
 
@@ -487,6 +555,9 @@ function PreviousFrameTotalAntidotesCollected() => prev(SkiSlopeAntidotes()) + p
 
 function TotalAntidotesCollected() => SkiSlopeAntidotes() + SouthPlainAntidotes() + DocsCaveAntidotes() + VegetableHQAntidotes() + NorthPlainAntidotes() +
                                       CanyonAntidotes() + GlacierCocktailAntidotes() + PyramidAntidotes() + PressureCookerAntidotes()
+
+function PreviousFrameTotalThermometersCollected() => prev(SkiSlopeThermometers()) + prev(SouthPlainThermometers()) + prev(DocsCaveThermometers()) + prev(VegetableHQThermometers()) + prev(NorthPlainThermometers()) + prev(CanyonThermometers()) +
+                                                      prev(GlacierCocktailThermometers()) + prev(PyramidThermometers()) + prev(PressureCookerThermometers()) + prev(MagicMushroomThermometers()) + prev(GroghsLairThermometers())
                                       
 function TotalThermometersCollected() => SkiSlopeThermometers() + SouthPlainThermometers() + DocsCaveThermometers() + VegetableHQThermometers() + NorthPlainThermometers() + CanyonThermometers() +
                                          GlacierCocktailThermometers() + PyramidThermometers() + PressureCookerThermometers() + MagicMushroomThermometers() + GroghsLairThermometers()
@@ -527,6 +598,12 @@ function NorthPlainPlatformTargetsActivatedConditions() {
      return activated
 }
 
+function EdStartedMagicMushroomSlideOnThisFrame() => LevelId() == 0x57A8 && prev(EdYPositionMagicMushroomHideout()) > MUSHROOM_SLIDE_START_POSITION && EdYPositionMagicMushroomHideout() <= MUSHROOM_SLIDE_START_POSITION
+
+function EdFinishedMagicMushroomSlideOnThisFrame() => LevelId() == 0x3448 && prev(EdZPositionMagicMushroomHideout()) < MUSHROOM_SLIDE_END_POSITION && EdZPositionMagicMushroomHideout() >= MUSHROOM_SLIDE_END_POSITION
+
+function MushroomSlideTimeTrialFrames() => (LevelId() == 0x57A8 && EdYPositionMagicMushroomHideout() <= MUSHROOM_SLIDE_START_POSITION) || LevelId() == 0x7FB8 || LevelId() == 0x3448
+
 
 // ------------------------
 // ----- Achievements -----
@@ -536,7 +613,8 @@ achievement(
     title = "Welcome to Earth Ed", points = 1,
     description = "Make it down the Ski Slope and enter South Plain",
     id = 404131, badge = "457552",
-    trigger = NotInDemoMode() && prev(LevelId()) == 0x7EB0 && LevelId() == 0xC24C
+    trigger = NotInDemoMode() && prev(LevelId()) == 0x7EB0 && LevelId() == 0xC24C,
+    type = "progression"
 )
 
 achievement(
@@ -544,56 +622,80 @@ achievement(
     description = "Defeat Robo-Suitcase and free the Doc",
     id = 404124, badge = "457538",
     trigger = NotInDemoMode() && LevelId() == 0x7EFC &&
-              trigger_when(prev(DocFreedFlag()) == 0x00 && DocFreedFlag() == 0x27)
+              trigger_when(prev(DocFreedFlag()) == 0x00 && DocFreedFlag() == 0x27),
+    type = "progression"
 )
 
 achievement(
     title = "Six Springs Ready and Jumping", points = 3,
     description = "Give 6 springs to the Doc and obtain the peashooter",
     id = 405830, badge = "459152",
-    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x0007 && ObtainedUpgrades() == 0x000F
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x0007 && ObtainedUpgrades() == 0x000F,
+    type = "progression"
 )
 
 achievement(
     title = "Looking Pretty Fly For a Guy With a Bow Tie", points = 3,
     description = "Give 6 propellers to the Doc and obtain the bow tie glider",
     id = 405831, badge = "459153",
-    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x000F && ObtainedUpgrades() == 0x008F
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x000F && ObtainedUpgrades() == 0x008F,
+    type = "progression"
 )
 
 achievement(
     title = "Like a Graceful Purple Dolphin", points = 3,
     description = "Give 6 jumping stones to the Doc and obtain the pressurized goldfish bowl",
     id = 406714, badge = "460217",
-    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x008F && ObtainedUpgrades() == 0x018F
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x008F && ObtainedUpgrades() == 0x018F,
+    type = "progression"
 )
 
 achievement(
     title = "More Than Just a Party Trick", points = 3,
     description = "Give 6 feathers to the Doc and obtain the chameleon powder",
     id = 406721, badge = "460224",
-    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x018F && ObtainedUpgrades() == 0x038F
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x018F && ObtainedUpgrades() == 0x038F,
+    type = "progression"
 )
 
 achievement(
     title = "Just What the Doctor Ordered", points = 3,
     description = "Give 6 dominoes to the Doc and obtain the pogo stick",
     id = 407123, badge = "460855",
-    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x038F && ObtainedUpgrades() == 0x03FF
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x038F && ObtainedUpgrades() == 0x03FF,
+    type = "progression"
 )
 
 achievement(
     title = "Piggynapped", points = 3,
     description = "Give 5 wild piggybanks to the Doc and obtain unlimited ammo for the peashooter",
     id = 407168, badge = "460905",
-    trigger = NotInDemoMode() && LevelId() == 0xF0EC && ObtainedUpgrades() == 0x03FF && CollectedPiggyBanks() == 0x05 && prev(CurrentPeashooterAmmo()) < 0xFF && CurrentPeashooterAmmo() == 0xFF
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && ObtainedUpgrades() == 0x03FF && CollectedPiggyBanks() == 0x05 && prev(CurrentPeashooterAmmo()) < 0xFF && CurrentPeashooterAmmo() == 0xFF,
+    type = "progression"
 )
 
 achievement(
     title = "Fully Immune", points = 5,
     description = "Collect 160 antidotes and become immune to the effects of the tonic",
     id = 407467, badge = "461334",
-    trigger = NotInDemoMode() && PreviousFrameTotalAntidotesCollected() == 159 && TotalAntidotesCollected() == 160
+    trigger = NotInDemoMode() && PreviousFrameTotalAntidotesCollected() == 159 && TotalAntidotesCollected() == 160,
+    type = "progression"
+)
+
+achievement(
+    title = "When Pigs Fly", points = 5,
+    description = "Give the 6th wild piggybank to the Doc and complete the catapult",
+    id = 409967, badge = "464376",
+    trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(MainQuestProgressionFlag()) == 0x06 && MainQuestProgressionFlag() == 0x07,
+    type = "progression"
+)
+
+achievement(
+    title = "Tonic Tranquility", points = 25,
+    description = "Take the can of tonic back from Grögh and save planet Earth",
+    id = 409969, badge = "464378",
+    trigger = NotInDemoMode() && prev(LevelId()) == 0xFFF8 && LevelId() == 0xA504,
+    type = "win_condition"
 )
 
 achievement(
@@ -778,6 +880,20 @@ achievement(
 )
 
 achievement(
+    title = "To Defeat Your Enemy You Must Become Your Enemy", points = 2,
+    description = "Transform into Grögh at the Pressure Cooker",
+    id = 408755, badge = "463436",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_GROGH)
+)
+
+achievement(
+    title = "Not Just a Boulder", points = 2,
+    description = "Transform into a boulder at Grögh's Lair",
+    id = 409968, badge = "464377",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_BOULDER)
+)
+
+achievement(
     title = "You've Got Cornstarch On Your Hands", points = 3,
     description = "Defeat the 5th member of the corn people's revolutionary army",
     id = 404049, badge = "457428",
@@ -808,7 +924,7 @@ achievement(
     description = "Make it all the way through the Canyon without using the bow tie glider's parachute, losing a life, or restarting from the pause menu",
     trigger = NotInDemoMode() && once(LevelId() == 0xEFE4 && CanyonTimerFlag() == 0x00) &&
               never(!InArea(AREA_ID_CANYON)) && never(EdCurrentState() == ED_STATE_PARACHUTING) &&
-              never(prev(Lives()) > Lives()) && never(LevelRestartedOnThisFrame()) &&
+              never(LostALife()) && never(LevelRestartedOnThisFrame()) &&
               trigger_when(CanyonLevelCleared())
 )
 
@@ -870,12 +986,61 @@ achievement(
     trigger = NotInDemoMode() && LevelId() == 0xD868 && prev(PyramidTargetPuzzleFlag()) == 0x04 && PyramidTargetPuzzleFlag() == 0x05
 )
 
-//achievement(
-//    title = "That's a Spicy Pepper", points = 2,
-//    description = "Defeat the chili pepper in Vegetables' HQ using only a single Super Ed transformation",
-//    trigger = NotInDemoMode() && once(ChiliPepperHealth() == 0x03) && never(LevelId() != 0x18F8) && never(prev(EdCurrentState()) == 0x43B4 && EdCurrentState() != 0x43B4) &&
-//              trigger_when(prev(ChiliPepperHealth()) == 0x01 && ChiliPepperHealth() == 0x00)
-//)
+achievement(
+    title = "Super Buff", points = 10,
+    description = "Collect enough thermometers to max out Ed's health bar",
+    id = 409730, badge = "464281",
+    trigger = NotInDemoMode() && prev(MaxHealth()) == 0x0E && MaxHealth() == 0x0F
+)
+
+achievement(
+    title = "Antidote Aficionado", points = 25,
+    description = "Collect all 180 antidotes",
+    id = 409728, badge = "464279",
+    trigger = NotInDemoMode() && PreviousFrameTotalAntidotesCollected() == 179 && TotalAntidotesCollected() == 180
+)
+
+achievement(
+    title = "A Few Extra Won't Hurt", points = 25,
+    description = "Collect all 110 thermometers",
+    id = 409732, badge = "464283",
+    trigger = NotInDemoMode() && PreviousFrameTotalThermometersCollected() == 109 && TotalThermometersCollected() == 110
+)
+
+achievement(
+    title = "Eyes On the Piggy Prize", points = 10,
+    description = "Make it down the slide at the magic mushroom's hideout in 1 minute or less",
+    id = 409731, badge = "464371",
+    trigger = NotInDemoMode() && unless(GamePausedFlag() == 0x01) && never(!InArea(AREA_ID_MUSHROOM_SLIDE)) &&
+              once(EdStartedMagicMushroomSlideOnThisFrame()) &&
+              never(repeated(3601, MushroomSlideTimeTrialFrames())) &&
+              trigger_when(EdFinishedMagicMushroomSlideOnThisFrame())
+)
+
+achievement(
+    title = "Fungle Infection Protection", points = 10,
+    description = "Defeat the magic mushroom boss without ever taking damage during the fight",
+    id = 409961, badge = "464370",
+    trigger = NotInDemoMode() && never(LevelId() != LEVEL_ID_MUSHROOM_HIDEOUT_AREA_4) && never(LostALife()) &&
+              once(MagicMushroomBossHealth() == MUSHROOM_BOSS_MAX_HEALTH) &&
+              disable_when(
+                 once(prev(CurrentHealth()) > CurrentHealth()),
+                 until=LostALife() || LevelId() != LEVEL_ID_MUSHROOM_HIDEOUT_AREA_4) &&
+              trigger_when(prev(MagicMushroomBossHealth())  == 0x01 && MagicMushroomBossHealth() == 0x00),
+    type = "missable"
+)
+
+achievement(
+    title = "Unstoppable Alien Force", points = 10,
+    description = "Complete the final phase of the Grögh boss fight without ever taking damage during the fight",
+    id = 409970, badge = "464379",
+    trigger = NotInDemoMode() && never(LevelId() != 0xFFF8) && never(LostALife()) &&
+              once(GroghBossHealth() == GROGH_BOSS_MAX_HEALTH) &&
+              disable_when(
+                 once(prev(CurrentHealth()) > CurrentHealth()),
+                 until=LostALife() || LevelId() != 0xFFF8) &&
+              trigger_when(prev(GroghBossHealth())  == 0x01 && GroghBossHealth() == 0x00)
+)
 
 
 // ------------------------
@@ -885,6 +1050,8 @@ achievement(
 function SkiSlopeTimerLeaderboardValue() => SkiSlopeTimer() / 10
 
 function CanyonTimerLeaderboardValue() => CanyonTimer() / 10
+
+function MushroomSlideTimeTrialLeaderboardValue() => measured(tally(0, GamePausedFlag() != 0x01 && MushroomSlideTimeTrialFrames()))
 
 leaderboard(
     id=86730,
@@ -907,6 +1074,18 @@ leaderboard(
     submit=CanyonLevelTimeTrialCleared(),
     value=CanyonTimerLeaderboardValue(),
     format="MILLISECS",
+    lower_is_better=true
+)
+
+leaderboard(
+    id=92173,
+    title="Magic Mushroom's Hideout Slide Time Trial",
+    description="Fastest time making it down the slide at the Magic Mushroom's Hideout",
+    start=EdStartedMagicMushroomSlideOnThisFrame(),
+    cancel=!InArea(AREA_ID_MUSHROOM_SLIDE),
+    submit=EdFinishedMagicMushroomSlideOnThisFrame(),
+    value=MushroomSlideTimeTrialLeaderboardValue(),
+    format="FRAMES",
     lower_is_better=true
 )
 
@@ -953,7 +1132,7 @@ LevelLookup = {
     0xFFF8: "fighting Grögh the Hellish"
 }
 
-rich_presence_conditional_display(AtTitleScreens() || DemoModeFlag() == 0x01, "Starting the game")
+rich_presence_conditional_display(LevelId() != 0xA504 && (AtTitleScreens() || DemoModeFlag() == 0x01), "Starting the game")
 rich_presence_conditional_display(LevelId() == 0x54C8, "Game Over")
 rich_presence_conditional_display(LevelId() == 0x1C78, "Ed is beginning a new adventure")
 rich_presence_conditional_display(LevelId() == 0xA504, "Ed has taken back the can of tonic and saved Earth")
