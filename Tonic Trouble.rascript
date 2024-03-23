@@ -144,12 +144,6 @@ function CollectedThermometersInCurrentLevel() => byte(0x13A9F1)
 //          When the value is 0x04, the next time it increments it will instead reset back to 0x01 to repeat the dialogue cycle.
 function CornBossDialogueFlag() => byte(0x1E31B9)
 
-// $1E6B7F: [8-bit] North Plain Trap Door Flag
-//          Identifies if the breakable trap door in the North Plain has been broken while in Level ID 0x8D8C
-//          0x01 = Broken
-//          0x03 = Not Broken
-function NorthPlainTrapDoorFlag() => byte(0x1E6B7F)
-
 // $29A89A: [8-bit] Max Health, max of 0x0F (15)
 //          Increases by 0x01 each time 10 thermometers are collected.
 function MaxHealth() => byte(0x29A89A)
@@ -399,6 +393,13 @@ function GroghBossHealth() => byte(0x3AE313)
 //          Decreases by 0x01 each time the boss is hit.
 //          Boss is defeated when the value reaches 0x00.
 function MagicMushroomBossHealth() => byte(0x3C7713)
+
+// $3C97C6: [8-bit] North Plain Trap Door Flag
+//          Identifies if the breakable trap door in the North Plain has been broken in level id 0x8D8C.
+//          This value can only be relied on when currenty loaded into the level.
+//          0x00 = Not Broken
+//          0x01 = Broken
+function NorthPlainTrapDoorFlag() => byte(0x3C97C6)
 
 
 // ---------------------
@@ -922,7 +923,7 @@ achievement(
     title = "Holy Tusks", points = 10,
     id = 406468, badge = "459323",
     description = "Make it all the way through the Canyon without using the bow tie glider's parachute, losing a life, or restarting from the pause menu",
-    trigger = NotInDemoMode() && once(LevelId() == 0xEFE4 && CanyonTimerFlag() == 0x00) &&
+    trigger = NotInDemoMode() && once(LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
               never(!InArea(AREA_ID_CANYON)) && never(EdCurrentState() == ED_STATE_PARACHUTING) &&
               never(LostALife()) && never(LevelRestartedOnThisFrame()) &&
               trigger_when(CanyonLevelCleared())
@@ -953,7 +954,7 @@ achievement(
     title = "Open Seasame", points = 2,
     description = "Break the hidden trapdoor in the North Plain using the pogo stick",
     id = 408185, badge = "462537",
-    trigger = NotInDemoMode() && LevelId() == 0x8D8C && prev(NorthPlainTrapDoorFlag()) == 0x03 && NorthPlainTrapDoorFlag() == 0x01
+    trigger = NotInDemoMode() && LevelId() == 0x8D8C && prev(NorthPlainTrapDoorFlag()) == 0x00 && NorthPlainTrapDoorFlag() == 0x01
 )
 
 achievement(
