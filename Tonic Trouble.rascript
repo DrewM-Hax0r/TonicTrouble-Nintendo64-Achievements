@@ -658,7 +658,7 @@ achievement(
 achievement(
     title = "Six Springs Ready and Jumping", points = 3,
     description = "Give 6 springs to the Doc and obtain the peashooter",
-    id = 405830, badge = "459152",
+    id = 405830, badge = "465289",
     trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x0007 && ObtainedUpgrades() == 0x000F,
     type = "progression"
 )
@@ -666,7 +666,7 @@ achievement(
 achievement(
     title = "Looking Pretty Fly For a Guy With a Bow Tie", points = 3,
     description = "Give 6 propellers to the Doc and obtain the bow tie glider",
-    id = 405831, badge = "459153",
+    id = 405831, badge = "465290",
     trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x000F && ObtainedUpgrades() == 0x008F,
     type = "progression"
 )
@@ -674,7 +674,7 @@ achievement(
 achievement(
     title = "Like a Graceful Purple Dolphin", points = 3,
     description = "Give 6 jumping stones to the Doc and obtain the pressurized goldfish bowl",
-    id = 406714, badge = "460217",
+    id = 406714, badge = "465291",
     trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x008F && ObtainedUpgrades() == 0x018F,
     type = "progression"
 )
@@ -682,15 +682,15 @@ achievement(
 achievement(
     title = "More Than Just a Party Trick", points = 3,
     description = "Give 6 feathers to the Doc and obtain the chameleon powder",
-    id = 406721, badge = "460224",
+    id = 406721, badge = "465293",
     trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x018F && ObtainedUpgrades() == 0x038F,
     type = "progression"
 )
 
 achievement(
     title = "Just What the Doctor Ordered", points = 3,
-    description = "Give 6 dominoes to the Doc and obtain the pogo stick",
-    id = 407123, badge = "460855",
+    description = "Give 6 dominos to the Doc and obtain the pogo stick",
+    id = 407123, badge = "465295",
     trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(ObtainedUpgrades()) == 0x038F && ObtainedUpgrades() == 0x03FF,
     type = "progression"
 )
@@ -698,7 +698,7 @@ achievement(
 achievement(
     title = "Piggynapped", points = 3,
     description = "Give 5 wild piggybanks to the Doc and obtain unlimited ammo for the peashooter",
-    id = 407168, badge = "460905",
+    id = 407168, badge = "465297",
     trigger = NotInDemoMode() && LevelId() == 0xF0EC && ObtainedUpgrades() == 0x03FF && CollectedPiggyBanks() == 0x05 && prev(CurrentPeashooterAmmo()) < 0xFF && CurrentPeashooterAmmo() == 0xFF,
     type = "progression"
 )
@@ -714,7 +714,7 @@ achievement(
 achievement(
     title = "When Pigs Fly", points = 5,
     description = "Give the 6th wild piggybank to the Doc and complete the catapult",
-    id = 409967, badge = "464376",
+    id = 409967, badge = "465298",
     trigger = NotInDemoMode() && LevelId() == 0xF0EC && prev(MainQuestProgressionFlag()) == 0x06 && MainQuestProgressionFlag() == 0x07,
     type = "progression"
 )
@@ -1118,7 +1118,8 @@ achievement(
     title = "Thermomephobia", points = 25,
     description = "Complete the entire game with a max health of 4 and having collected less than 10 thermometers total",
     id = 410794, badge = "465278",
-    trigger = NotInDemoMode() && MaxHealth() == 5 && TotalThermometersCollected() < 10 && LevelId() == 0xFFF8 && prev(GroghBossHealth())  == 0x01 && GroghBossHealth() == 0x00
+    trigger = NotInDemoMode() && MaxHealth() == 5 && TotalThermometersCollected() < 10 && LevelId() == 0xFFF8 && prev(GroghBossHealth())  == 0x01 && GroghBossHealth() == 0x00,
+    type = "missable"
 )
 
 
