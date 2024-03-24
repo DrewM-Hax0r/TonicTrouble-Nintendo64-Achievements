@@ -15,6 +15,14 @@ function InitalLoadBlackScreenFlag() => byte(0x113685)
 //          0x01 = In Demo Mode
 function DemoModeFlag() => byte(0x1136E5)
 
+// $113B03: [8-bit] In Game Flag
+//          Can be used to check if in normal gameplay.
+//          This flag will not be set in situations like the game being paused, or the game is loading into a new area.
+//          It will be set when the player is in game and able to control Ed.
+//          0x00 = Not In Game
+//          0x01 = In Game
+function InGameFlag() => byte(0x113B03)
+
 // $1257A3: [8-bit] Player Input Buttons Held (A, B, Z, D-Pad, Start)
 //          Bits are set to 1 when a button on the controller is currently pressed down
 //          bit0 = D-Pad Right
@@ -1044,7 +1052,7 @@ achievement(
     title = "Open Seasame", points = 2,
     description = "Break the hidden trapdoor in the North Plain using the pogo stick",
     id = 408185, badge = "462537",
-    trigger = NotInDemoMode() && LevelId() == 0x8D8C && prev(NorthPlainTrapDoorFlag()) == 0x00 && NorthPlainTrapDoorFlag() == 0x01
+    trigger = NotInDemoMode() && LevelId() == 0x8D8C && InGameFlag() == 0x01 && prev(NorthPlainTrapDoorFlag()) == 0x00 && NorthPlainTrapDoorFlag() == 0x01
 )
 
 achievement(
