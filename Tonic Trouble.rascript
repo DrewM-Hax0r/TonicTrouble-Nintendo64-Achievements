@@ -728,10 +728,17 @@ achievement(
 )
 
 achievement(
-    title = "Speedy Sledding", points = 5,
-    description = "Make it down the Ski Slope with a time of 1 minute and 30 seconds or less",
-    id = 403627, badge = "460215",
-    trigger = NotInDemoMode() && SkiSlopeTimer() <= 90000 && SkiSlopeLevelCleared()
+    title = "Super Buff", points = 10,
+    description = "Collect enough thermometers to max out Ed's health bar",
+    id = 409730, badge = "464281",
+    trigger = NotInDemoMode() && prev(MaxHealth()) == 0x0E && MaxHealth() == 0x0F
+)
+
+achievement(
+    title = "Golden Head Ed", points = 5,
+    description = "Have a total of 25 lives",
+    id = 410701, badge = "465193",
+    trigger = NotInDemoMode() && prev(Lives()) == 24 && Lives() == 25
 )
 
 achievement(
@@ -875,10 +882,17 @@ achievement(
 )
 
 achievement(
-    title = "Seeing Red", points = 2,
-    description = "Transform into a tomato in South Plain",
-    id = 408224, badge = "462577",
-    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_TOMATO)
+    title = "Antidote Aficionado", points = 25,
+    description = "Collect all 180 antidotes",
+    id = 409728, badge = "464279",
+    trigger = NotInDemoMode() && PreviousFrameTotalAntidotesCollected() == 179 && TotalAntidotesCollected() == 180
+)
+
+achievement(
+    title = "A Few Extra Won't Hurt", points = 25,
+    description = "Collect all 110 thermometers",
+    id = 409732, badge = "464283",
+    trigger = NotInDemoMode() && PreviousFrameTotalThermometersCollected() == 109 && TotalThermometersCollected() == 110
 )
 
 achievement(
@@ -886,6 +900,13 @@ achievement(
     description = "Transform into the mummy in South Plain",
     id = 408223, badge = "462576",
     trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_MUMMY)
+)
+
+achievement(
+    title = "Seeing Red", points = 2,
+    description = "Transform into a tomato in South Plain",
+    id = 408224, badge = "462577",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_TOMATO)
 )
 
 achievement(
@@ -945,6 +966,13 @@ achievement(
 )
 
 achievement(
+    title = "Speedy Sledding", points = 5,
+    description = "Make it down the Ski Slope with a time of 1 minute and 30 seconds or less",
+    id = 403627, badge = "460215",
+    trigger = NotInDemoMode() && SkiSlopeTimer() <= 90000 && SkiSlopeLevelCleared()
+)
+
+achievement(
     title = "You've Got Cornstarch On Your Hands", points = 3,
     description = "Defeat the 5th member of the corn people's revolutionary army",
     id = 404049, badge = "457428",
@@ -976,23 +1004,6 @@ achievement(
 )
 
 achievement(
-    title = "Speedy Gliding", points = 10,
-    description = "Complete a timed run of the Canyon with a time of 3 minutes or less",
-    id = 406467, badge = "459322",
-    trigger = NotInDemoMode() && CanyonTimer() <= 180000 && CanyonLevelTimeTrialCleared()
-)
-
-achievement(
-    title = "Holy Tusks", points = 10,
-    id = 406468, badge = "459323",
-    description = "Make it all the way through the Canyon without using the bow tie glider's parachute, losing a life, or restarting from the pause menu",
-    trigger = NotInDemoMode() && once(LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
-              never(!InArea(AREA_ID_CANYON)) && never(EdCurrentState() == ED_STATE_PARACHUTING) &&
-              never(LostALife()) && never(LevelRestartedOnThisFrame()) &&
-              trigger_when(CanyonLevelCleared())
-)
-
-achievement(
     title = "Clearing the Patch", points = 10,
     description = "Return to the Vegetables' HQ after having collected the 6 springs and defeat every unique enemy without ever taking damage or losing a life",
     id = 407471, badge = "461369",
@@ -1001,6 +1012,14 @@ achievement(
                  once(prev(CurrentHealth()) > CurrentHealth()),
                  until=LevelId() == LEVEL_ID_VEGHQ_START) &&
               measured(tally(DictonaryArrayLength(VegHQEnemyDefeatedLookup), AllEnemyDefeatedConditions(VegHQEnemyDefeatedLookup)))
+)
+
+achievement(
+    title = "Traversing With Care", points = 5,
+    description = "Hit every target for the moving Grögh platform in the North Plain without ever taking damage or losing a life",
+    id = 408215, badge = "462566",
+    trigger = NotInDemoMode() && never(LevelId() != 0x3610) && never(prev(CurrentHealth()) > CurrentHealth()) &&
+              measured(tally(length(NORTH_PLAIN_PLATFORM_TARGETS), NorthPlainPlatformTargetsActivatedConditions()))
 )
 
 achievement(
@@ -1021,11 +1040,20 @@ achievement(
 )
 
 achievement(
-    title = "Traversing With Care", points = 5,
-    description = "Hit every target for the moving Grögh platform in the North Plain without ever taking damage or losing a life",
-    id = 408215, badge = "462566",
-    trigger = NotInDemoMode() && never(LevelId() != 0x3610) && never(prev(CurrentHealth()) > CurrentHealth()) &&
-              measured(tally(length(NORTH_PLAIN_PLATFORM_TARGETS), NorthPlainPlatformTargetsActivatedConditions()))
+    title = "Speedy Gliding", points = 10,
+    description = "Complete a timed run of the Canyon with a time of 3 minutes or less",
+    id = 406467, badge = "459322",
+    trigger = NotInDemoMode() && CanyonTimer() <= 180000 && CanyonLevelTimeTrialCleared()
+)
+
+achievement(
+    title = "Holy Tusks", points = 10,
+    id = 406468, badge = "459323",
+    description = "Make it all the way through the Canyon without using the bow tie glider's parachute, losing a life, or restarting from the pause menu",
+    trigger = NotInDemoMode() && once(LevelId() == 0xEFE4 && EdZPosition() > 0x43E2C000) &&
+              never(!InArea(AREA_ID_CANYON)) && never(EdCurrentState() == ED_STATE_PARACHUTING) &&
+              never(LostALife()) && never(LevelRestartedOnThisFrame()) &&
+              trigger_when(CanyonLevelCleared())
 )
 
 // Note that the achievement generated from this script will not match the finalized achievement logic 1-1 as the code does not seem to support complex conditions with ResetNextIf lines
@@ -1048,27 +1076,6 @@ achievement(
     description = "Solve the target puzzle in the Pyramid's secret room",
     id = 408229, badge = "462584",
     trigger = NotInDemoMode() && LevelId() == 0xD868 && prev(PyramidTargetPuzzleFlag()) == 0x04 && PyramidTargetPuzzleFlag() == 0x05
-)
-
-achievement(
-    title = "Super Buff", points = 10,
-    description = "Collect enough thermometers to max out Ed's health bar",
-    id = 409730, badge = "464281",
-    trigger = NotInDemoMode() && prev(MaxHealth()) == 0x0E && MaxHealth() == 0x0F
-)
-
-achievement(
-    title = "Antidote Aficionado", points = 25,
-    description = "Collect all 180 antidotes",
-    id = 409728, badge = "464279",
-    trigger = NotInDemoMode() && PreviousFrameTotalAntidotesCollected() == 179 && TotalAntidotesCollected() == 180
-)
-
-achievement(
-    title = "A Few Extra Won't Hurt", points = 25,
-    description = "Collect all 110 thermometers",
-    id = 409732, badge = "464283",
-    trigger = NotInDemoMode() && PreviousFrameTotalThermometersCollected() == 109 && TotalThermometersCollected() == 110
 )
 
 achievement(
@@ -1104,13 +1111,6 @@ achievement(
                  once(prev(CurrentHealth()) > CurrentHealth()),
                  until=LostALife() || LevelId() != 0xFFF8) &&
               trigger_when(prev(GroghBossHealth())  == 0x01 && GroghBossHealth() == 0x00)
-)
-
-achievement(
-    title = "Golden Head Ed", points = 5,
-    description = "Have a total of 25 lives",
-    id = 410701, badge = "465193",
-    trigger = NotInDemoMode() && prev(Lives()) == 24 && Lives() == 25
 )
 
 
