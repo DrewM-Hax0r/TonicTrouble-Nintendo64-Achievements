@@ -1113,6 +1113,14 @@ achievement(
               trigger_when(prev(GroghBossHealth())  == 0x01 && GroghBossHealth() == 0x00)
 )
 
+// The max health value is 5 and not 4 because the game lets you take 1 more hit after the health bar reaches the bottom, thus a max health of 4 is actually 5 hits
+achievement(
+    title = "Thermomephobia", points = 25,
+    description = "Complete the entire game with a max health of 4 and having collected less than 10 thermometers total",
+    id = 410794, badge = "465278",
+    trigger = NotInDemoMode() && MaxHealth() == 5 && TotalThermometersCollected() < 10 && LevelId() == 0xFFF8 && prev(GroghBossHealth())  == 0x01 && GroghBossHealth() == 0x00
+)
+
 
 // ------------------------
 // ----- Leaderboards -----
