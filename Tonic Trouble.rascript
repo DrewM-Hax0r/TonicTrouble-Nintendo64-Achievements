@@ -720,6 +720,14 @@ achievement(
 )
 
 achievement(
+    title = "Point Of No Return", points = 5,
+    description = "Make it though Grögh's Lair and find the groga machine (back up your save now)",
+    id = 410834, badge = "465299",
+    trigger = NotInDemoMode() && prev(LevelId()) == 0x2D00 && LevelId() == 0x42E8,
+    type = "progression"
+)
+
+achievement(
     title = "Tonic Tranquility", points = 25,
     description = "Take the can of tonic back from Grögh and save planet Earth",
     id = 409969, badge = "464378",
