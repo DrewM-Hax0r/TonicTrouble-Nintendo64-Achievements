@@ -144,6 +144,12 @@ function CollectedThermometersInCurrentLevel() => byte(0x13A9F1)
 //          When the value is 0x04, the next time it increments it will instead reset back to 0x01 to repeat the dialogue cycle.
 function CornBossDialogueFlag() => byte(0x1E31B9)
 
+// $29A898: [8-bit] Chameleon Powder Transformation Flag
+//          Can be used to determine if Ed has activated any chameleon powder transformation.
+//          0x00 = Transformed
+//          0x10 = Not Transformed
+function ChameleonPowderTransformationFlag() => byte(0x29A898)
+
 // $29A89A: [8-bit] Max Health, max of 0x0F (15)
 //          Increases by 0x01 each time 10 thermometers are collected.
 function MaxHealth() => byte(0x29A89A)
@@ -196,8 +202,10 @@ function EdZPosition() => dword(0x2A58C4)
 //          0x66F8 = Mummy (South Plain: 0x4BC0) 
 //          0xAAD0 = Dino-Cow (South Plain: 0x53BC)
 //          0x2FD4 = Bowling Bomb (Doc's Cave: 0xEF8C)
+//          0x65C4 = Support Column (Pyramid: 0x3A20)
 //          0xFCE8 = Scarab (Pyramid: 0xD868)
 //          0x9524 = Grögh (Pressure Cooker: 0x275C)
+//          0x2EE0 = Box (Pressure Cooker: 0x1960)
 //          0x5068 = Boulder (Grögh's Lair: 0x2D00)
 function ChameleonPowderTransformation() => word(0x2A8958)
 
@@ -380,6 +388,13 @@ function CornBossHealth() => byte(0x3A2DE3)
 //          Chili Pepper is defeated when value reaches 0x00.
 function ChiliPepperHealth() => byte(0x3A3453)
 
+// $3A4067: [8-bit] Robosuitcase Boss Health
+//          During robosuitcase boss fight, level id = 0x7EFC
+//          Max value of 0x04.
+//          Decreases by 0x01 each time the boss is hit.
+//          Boss is defeated when the value reaches 0x00.
+function RobosuitcaseBossHealth() => byte(0x3A4067)
+
 // $3AE313: [8-bit] Grögh Boss Health
 //          During Grögh boss fight (final phase), level id = 0xFFF8
 //          Max value of 0x03.
@@ -410,6 +425,8 @@ LEVEL_ID_SKI_SLOPE_AREA_1 = 0x70BC
 LEVEL_ID_SKI_SLOPE_AREA_2 = 0x0780
 LEVEL_ID_SKI_SLOPE_AREA_3 = 0x368C
 LEVEL_ID_SKI_SLOPE_AREA_4 = 0x7EB0
+
+LEVEL_ID_DOCS_CAVE_AREA_7 = 0x7EFC
 
 LEVEL_ID_VEGHQ_START = 0xE56C
 LEVEL_ID_VEGHQ_AREA_1 = 0xCFF8
@@ -443,9 +460,11 @@ TRANSFORMATION_ID_TOMATO = 0x00
 TRANSFORMATION_ID_MUMMY = 0x01
 TRANSFORMATION_ID_DINO_COW = 0x02
 TRANSFORMATION_ID_BOWLING_BOMB = 0x03
+TRANSFORMATION_ID_SUPPORT_COLUMN = 0x04
 TRANSFORMATION_ID_SCARAB = 0x05
-TRANSFORMATION_ID_GROGH = 0x06
-TRANSFORMATION_ID_BOULDER = 0x07
+TRANSFORMATION_ID_BOX = 0x06
+TRANSFORMATION_ID_GROGH = 0x07
+TRANSFORMATION_ID_BOULDER = 0x08
 
 MINION_DEFEATED = 0x01
 MINION_NOT_DEFEATED = 0x10
@@ -457,6 +476,7 @@ NORTH_PLAIN_PLATFORM_TARGETS = [0x347608, 0x347650, 0x347698, 0x3476E0, 0x347728
 MUSHROOM_SLIDE_START_POSITION = 0xC4E33935
 MUSHROOM_SLIDE_END_POSITION = 0xC456B8C2
 
+ROBOSUITCASE_BOSS_MAX_HEALTH = 0x04
 MUSHROOM_BOSS_MAX_HEALTH = 0x08
 GROGH_BOSS_MAX_HEALTH = 0x03
 
@@ -526,6 +546,8 @@ function EdStartedGlidingOnThisFrame() => prev(EdMovementFlag()) != ED_MOVEMENT_
 
 function EdIsGliding() => EdMovementFlag() == ED_MOVEMENT_GLIDING
 
+function BecomeSuperEdOnThisFrame() => prev(EdCurrentState()) != 0x43B4 && EdCurrentState() == 0x43B4
+
 function EdTransformedOnThisFrame(transformationId) {
     if (transformationId == TRANSFORMATION_ID_TOMATO) {
         return LevelId() == 0xC24C && prev(ChameleonPowderTransformation()) == 0xC24C && ChameleonPowderTransformation() == 0x30B4
@@ -539,11 +561,17 @@ function EdTransformedOnThisFrame(transformationId) {
     if (transformationId == TRANSFORMATION_ID_BOWLING_BOMB) {
         return LevelId() == 0xEF8C && prev(ChameleonPowderTransformation()) == 0xEF8C && ChameleonPowderTransformation() == 0x2FD4
     }
+    if (transformationId == TRANSFORMATION_ID_SUPPORT_COLUMN) {
+        return LevelId() == 0x3A20 && prev(ChameleonPowderTransformation()) == 0x3A20 && ChameleonPowderTransformation() == 0x65C4
+    }
     if (transformationId == TRANSFORMATION_ID_SCARAB) {
         return LevelId() == 0xD868 && prev(ChameleonPowderTransformation()) == 0xD868 && ChameleonPowderTransformation() == 0xFCE8
     }
     if (transformationId == TRANSFORMATION_ID_GROGH) {
         return LevelId() == 0x275C && prev(ChameleonPowderTransformation()) == 0x275C && ChameleonPowderTransformation() == 0x9524
+    }
+    if (transformationId == TRANSFORMATION_ID_BOX) {
+        return LevelId() == 0x1960 && prev(ChameleonPowderTransformation()) == 0x1960 && ChameleonPowderTransformation() == 0x2EE0
     }
     if (transformationId == TRANSFORMATION_ID_BOULDER) {
         return LevelId() == 0x2D00 && prev(ChameleonPowderTransformation()) == 0x2D00 && ChameleonPowderTransformation() == 0x5068
@@ -620,7 +648,7 @@ achievement(
 
 achievement(
     title = "Great Nuts and Bolts", points = 2,
-    description = "Defeat Robo-Suitcase and free the Doc",
+    description = "Defeat robosuitcase and free the Doc",
     id = 404124, badge = "457538",
     trigger = NotInDemoMode() && LevelId() == 0x7EFC &&
               trigger_when(prev(DocFreedFlag()) == 0x00 && DocFreedFlag() == 0x27),
@@ -863,6 +891,7 @@ achievement(
 achievement(
     title = "Prehistoric Party", points = 2,
     description = "Transform into a dino-cow in South Plain",
+    id = 408225, badge = "462579",
     trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_DINO_COW)
 )
 
@@ -874,6 +903,13 @@ achievement(
 )
 
 achievement(
+    title = "Breaking and Entering", points = 2,
+    description = "Transform into a support column in the Pyramid",
+    id = 410726, badge = "465194",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_SUPPORT_COLUMN)
+)
+
+achievement(
     title = "Scarab-in Around", points = 2,
     description = "Transform into a scarab in the Pyramid",
     id = 408230, badge = "462585",
@@ -881,10 +917,24 @@ achievement(
 )
 
 achievement(
+    title = "He'll Never See It Coming", points = 2,
+    description = "Transform into a piston crusher at the Pressure Cooker",
+    id = 410750, badge = "465210",
+    trigger = NotInDemoMode() && LevelId() == 0xEE90 && prev(ChameleonPowderTransformationFlag()) == 0x10 && ChameleonPowderTransformationFlag() == 0x00
+)
+
+achievement(
     title = "To Defeat Your Enemy You Must Become Your Enemy", points = 2,
     description = "Transform into Grögh at the Pressure Cooker",
     id = 408755, badge = "463436",
     trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_GROGH)
+)
+
+achievement(
+    title = "Metal Tonic", points = 2,
+    description = "Transform into a box at the Pressure Cooker",
+    id = 410791, badge = "465252",
+    trigger = NotInDemoMode() && EdTransformedOnThisFrame(TRANSFORMATION_ID_BOX)
 )
 
 achievement(
@@ -910,6 +960,19 @@ achievement(
               once(prev(DocsCaveToasterRoomPlatformFlag()) == 0x01 && DocsCaveToasterRoomPlatformFlag() == 0x02) &&
               never(EdJumpedOnThisFrame()) && never(prev(CurrentHealth()) > CurrentHealth()) &&
               trigger_when(prev(EdYPosition()) < 0xC3B55715 && EdYPosition() >= 0xC3B55715)
+)
+
+achievement(
+    title = "That Tin Can is No Match For Me", points = 3,
+    description = "Defeat the robosuitcase boss using only a single Super Ed transformation",
+    id = 410793, badge = "465274",
+    trigger = NotInDemoMode() && never(LevelId() != LEVEL_ID_DOCS_CAVE_AREA_7) && never(LostALife()) &&
+              once(RobosuitcaseBossHealth() == ROBOSUITCASE_BOSS_MAX_HEALTH) &&
+              disable_when(
+                 repeated(2, BecomeSuperEdOnThisFrame()),
+                 until=LostALife() || LevelId() != LEVEL_ID_DOCS_CAVE_AREA_7) &&
+              trigger_when(prev(RobosuitcaseBossHealth())  == 0x01 && RobosuitcaseBossHealth() == 0x00),
+    type = "missable"
 )
 
 achievement(
@@ -1041,6 +1104,13 @@ achievement(
                  once(prev(CurrentHealth()) > CurrentHealth()),
                  until=LostALife() || LevelId() != 0xFFF8) &&
               trigger_when(prev(GroghBossHealth())  == 0x01 && GroghBossHealth() == 0x00)
+)
+
+achievement(
+    title = "Golden Head Ed", points = 5,
+    description = "Have a total of 25 lives",
+    id = 410701, badge = "465193",
+    trigger = NotInDemoMode() && prev(Lives()) == 24 && Lives() == 25
 )
 
 
