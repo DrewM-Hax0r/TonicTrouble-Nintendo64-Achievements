@@ -599,10 +599,10 @@ function PreviousFrameTotalThermometersCollected() => prev(SkiSlopeThermometers(
 function TotalThermometersCollected() => SkiSlopeThermometers() + SouthPlainThermometers() + DocsCaveThermometers() + VegetableHQThermometers() + NorthPlainThermometers() + CanyonThermometers() +
                                          GlacierCocktailThermometers() + PyramidThermometers() + PressureCookerThermometers() + MagicMushroomThermometers() + GroghsLairThermometers()
 
-function SkiSlopeLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4) && SkiSlopeTimerCheckpoint() != SkiSlopeTimer() && prev(SkiSlopeTimerFlag()) == 0x02 && (SkiSlopeTimerFlag() == 0x00 || SkiSlopeTimerFlag() == 0x03)
+function SkiSlopeLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_SKI_SLOPE_AREA_4) && RestartLevelFlag() != 0x00 && SkiSlopeTimerCheckpoint() != SkiSlopeTimer() && prev(SkiSlopeTimerFlag()) == 0x02 && (SkiSlopeTimerFlag() == 0x00 || SkiSlopeTimerFlag() == 0x03)
 
-function CanyonLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5) && prev(CanyonTimerFlag()) != 0x03 && CanyonTimerFlag() == 0x03
-function CanyonLevelTimeTrialCleared() => CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5) && prev(CanyonTimerFlag()) == 0x02 && CanyonTimerFlag() == 0x03
+function CanyonLevelCleared() => CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5) && RestartLevelFlag() != 0x00 && prev(CanyonTimerFlag()) != 0x03 && CanyonTimerFlag() == 0x03
+function CanyonLevelTimeTrialCleared() => CurrentLoadedZoneIs(LEVEL_ID_CANYON_AREA_5) && RestartLevelFlag() != 0x00 && prev(CanyonTimerFlag()) == 0x02 && CanyonTimerFlag() == 0x03
 
 function CollectedAllAntidotesInArea(antidoteCount) => prev(antidoteCount) == 0x13 && measured(antidoteCount == 0x14, when=NotInDemoMode(), format="raw")
 
