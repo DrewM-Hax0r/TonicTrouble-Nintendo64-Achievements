@@ -1134,7 +1134,7 @@ achievement(
     title = "Thermomephobia", points = 25,
     description = "Complete the entire game with a max health of 4 and having collected less than 10 thermometers total",
     id = 410794, badge = "465278",
-    trigger = NotInDemoMode() && MaxHealth() == 5 && TotalThermometersCollected() < 10 && LevelId() == 0xFFF8 && prev(GroghBossHealth())  == 0x01 && GroghBossHealth() == 0x00,
+    trigger = NotInDemoMode() && !AtTitleScreens() && MaxHealth() == 5 && TotalThermometersCollected() < 10 && LevelId() == 0xFFF8 && prev(GroghBossHealth()) == 0x01 && GroghBossHealth() == 0x00,
     type = "missable"
 )
 
