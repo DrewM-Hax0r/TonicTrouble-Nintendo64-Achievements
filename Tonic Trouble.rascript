@@ -335,6 +335,13 @@ function EdMovementFlag() => byte(0x2A56E0)
 //          0x27 = Doc is freed
 function DocFreedFlag() => byte(0x2b8e3e)
 
+// $2DA65A: [8-bit] Scripted Event Flag
+//          This flag is useful for determining if the game is currently playing a scripted event that is deteched from standard gameplay.
+//          0x01 = Normal Gameplay
+//          0x00 = Scripted Gameplay
+//          Examples of scripted gameplay are things like when Ed is currently in a dying animation, or a cutscene is playing.
+function ScriptedGameplayFlag() => byte(0x2da65a)
+
 // $2E9860: [32-bit] Canyon Timer (Segment 5)
 //          Increases in value when the timer is active in the Canyon's fifth area (level ID = 0xAA8C).
 //          This value is initialized to the total time of all previous areas when the area is loaded.
@@ -1109,7 +1116,11 @@ achievement(
     description = "Defeat the magic mushroom boss without ever taking damage during the fight",
     id = 409961, badge = "464370",
     trigger = NotInDemoMode() && never(LevelId() != LEVEL_ID_MUSHROOM_HIDEOUT_AREA_4) && never(LostALife()) &&
+              // There is a checkpoint once the boss reaches 3HP. If Ed dies and the checkpoint is loaded, boss HP will start at max
+              // for a frame or two before dropping back to 3HP, which would re-enable the achievement if we dont reset it with this chec
+              never(prev(MagicMushroomBossHealth() == MUSHROOM_BOSS_MAX_HEALTH) && MagicMushroomBossHealth() == 0x03) &&
               once(MagicMushroomBossHealth() == MUSHROOM_BOSS_MAX_HEALTH) &&
+              once(prev(ScriptedGameplayFlag() == 0x00) && ScriptedGameplayFlag() == 0x01) &&
               disable_when(
                  once(prev(CurrentHealth()) > CurrentHealth()),
                  until=LostALife() || LevelId() != LEVEL_ID_MUSHROOM_HIDEOUT_AREA_4) &&
